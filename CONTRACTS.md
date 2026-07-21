@@ -1,6 +1,6 @@
 # PowerPulse — Entegrasyon Sözleşmeleri (Contract-First)
 
-Bu belge, ekip üyelerinin birbirini beklemeden bağımsız geliştirme yapabilmesi için sabitlenmiş arayüzleri tanımlar. Esra'nın frontend taraflı sözleşme önerisi buraya işlendi (v2). AI Advisory Service'in ayrı mikroservis olarak HTTP sözleşmesi eklendi (v3). Buradaki şemalar/interface imzaları değişmeden önce ekipçe konuşulmalı.
+Bu belge, ekip üyelerinin birbirini beklemeden bağımsız geliştirme yapabilmesi için sabitlenmiş arayüzleri tanımlar. Esra'nın frontend taraflı sözleşme önerisi buraya işlendi (v2). AI Advisory Service'in ayrı mikroservis olarak HTTP sözleşmesi eklendi (v3). Ignite anlık veri cache sözleşmesi eklendi (v4). Registration topic akış yönü orijinal ödev PDF'ine göre düzeltildi (v5). Buradaki şemalar/interface imzaları değişmeden önce ekipçe konuşulmalı.
 
 ## 0. Kimlik (ID) Kararı — Ekip Kararı
 
@@ -25,8 +25,10 @@ Not: Telemetry Sensors simülatörü çalışıyor (bkz. `sensors/`), demo veril
 - Kadıköy Evi: `11111111-1111-1111-1111-111111111111` (Klima, Buzdolabı, Çamaşır Makinesi)
 - Beşiktaş Evi: `11111111-1111-1111-1111-111111111112` (Klima, Fırın, Televizyon)
 
-### 1.2 `registration` — Ev/cihaz kayıt ve bütçe bilgisi
-**Üreten:** Esra (Web App, kullanıcı kayıt formu üzerinden) · **Tüketen:** Tarık (Core)
+### 1.2 `registration` — Ev/cihaz kayıt ve bütçe bilgisi (v5 — akış yönü düzeltildi)
+**Üreten:** Tarık (Core) · **Tüketen:** Kutay (Telemetry Sensors)
+
+> Düzeltme: Önceki versiyonda "Esra'nın Web App'i doğrudan Kafka'ya yayınlıyor" yazıyordu — bu yanlıştı. Orijinal ödev PDF'i (bölüm 5.2.1, "Home Registration Endpoint") şunu açıkça belirtiyor: Esra'nın Web App'i bir **REST** isteği (`POST` — Core'da tanımlanacak) atar, **Core** bu isteği alıp PostgreSQL'e kaydeder ve **kendisi** Kafka'nın `registration` topic'ine yayınlar. Telemetry Sensors (Kutay) bu topic'i dinleyip yeni evi/cihazı simülasyonuna dinamik olarak ekler (bkz. görev #12, Core'un bu endpoint'i bitirmesini bekliyor).
 
 ```json
 {
@@ -38,6 +40,23 @@ Not: Telemetry Sensors simülatörü çalışıyor (bkz. `sensors/`), demo veril
   ]
 }
 ```
+
+### 1.3 Apache Ignite — anlık değer cache'i (v4)
+**Yazan:** Kutay (Telemetry Sensors) · **Okuyan:** Tarık (Core, isteğe bağlı hızlı okuma için)
+
+Telemetry Sensors, her cihazın en son ürettiği değeri Kafka'ya göndermenin yanında Ignite'a da yazıyor. Amaç: Core'un "şu an bu cihaz kaç watt çekiyor" gibi anlık sorularda Kafka geçmişini taramasına ya da DB'ye gitmesine gerek kalmadan hızlıca cevap alabilmesi.
+
+- **Cache adı:** `latest_telemetry`
+- **Key formatı:** `"{homeId}:{applianceId}"` (örnek: `"11111111-1111-1111-1111-111111111111:21111111-1111-1111-1111-111111111111"`)
+- **Value:** `telemetry` topic'iyle aynı JSON şeması (bölüm 1.1), string olarak saklanıyor.
+- **Bağlantı:** Ignite thin client, `IGNITE_ADDRESS` env değişkeni (varsayılan `localhost:10800`).
+- Ignite'a yazma başarısız olursa (servis kapalıysa vb.) Telemetry Sensors durmaz, sadece loglar — Kafka akışı bu duruma bağımlı değil.
+
+### 1.4 Anomali kuralı — spec'te sabit (v5 — netleştirme)
+
+Bir cihaz güvenli limitini (appliance'ın `safeLimitWatt` değeri) **üst üste 3 telemetry döngüsünde** aşarsa anomali olarak işaretlenmeli ve alarm tetiklenmeli; normale dönünce sayaç sıfırlanmalı. Bu sayı (**3**) ekibin kendi kararı değil, orijinal ödev PDF'inde (bölüm 5.2.1, "Consecutive Breach Counter") açıkça verilmiş bir gereksinim. Bu sayaç mantığı **Core (Tarık)** tarafında Ignite üzerinde tutulacak — Sensors sadece ham wattage verisini üretir, anomali tespiti/saymayı yapmaz.
+
+Ayrıca aynı bölümde kota uyarı eşiği de belirtiliyor: bir ev bütçesinin **%80'ine veya %100'üne** ulaştığında uyarı/alarm hattı tetiklenmeli (bu, Esra'nın dashboard'daki görsel `status` eşiklerinden — %90/%100 — ayrı, Core'un iç alarm/bildirim mantığıdır).
 
 ## 2. REST API — Web App ↔ Core
 **Sağlayan:** Tarık (Core) · **Çağıran:** Esra (Web App)
@@ -103,7 +122,24 @@ Not: Telemetry Sensors simülatörü çalışıyor (bkz. `sensors/`), demo veril
 ```
 Karar: Backend hesaplayıp döndürecek (fatura/kota kuralları zaten backend sorumluluğunda, frontend'in tekrar hesaplamasına gerek yok).
 
-### 2.5 `GET /api/ai/recommendation` (genel) veya `GET /api/homes/{id}/recommendation` (eve özel)
+### 2.5 `POST /api/homes/register` — Yeni ev/cihaz kaydı (v5 — eklendi)
+**Sağlayan:** Tarık (Core) · **Çağıran:** Esra (Web App, kayıt formu)
+
+Ödev PDF'inde tanımlı ("Home Registration Endpoint"). Core bu isteği alınca PostgreSQL'e kaydeder ve `registration` Kafka topic'ine yayınlar (bkz. bölüm 1.2).
+
+```json
+{
+  "contactEmail": "kullanici@example.com",
+  "name": "Kadıköy Evi",
+  "budgetQuotaKwh": 300.0,
+  "appliances": [
+    { "name": "Klima", "safeLimitWatt": 2000.0 }
+  ]
+}
+```
+Response: `201 Created` + oluşturulan evin `id` (uuid) dahil tam kaydı.
+
+### 2.6 `GET /api/ai/recommendation` (genel) veya `GET /api/homes/{id}/recommendation` (eve özel)
 ```json
 {
   "title": "Enerji Tasarrufu Önerisi",
@@ -120,10 +156,8 @@ Karar: Backend hesaplayıp döndürecek (fatura/kota kuralları zaten backend so
 ```
 AI servisi hata verirse yalnızca bu endpoint hata döner, dashboard'un geri kalanı etkilenmez (bkz. 503 aşağıda). Core, bu response'u üretmek için dahili olarak AI Advisory Service'i çağırır (bkz. bölüm 3.1).
 
-## 3. Java Servis Arayüzü — `EnergyAdvisoryService` (v2 — güncellendi)
+## 3. Java Servis Arayüzü — `EnergyAdvisoryService` (v2)
 **Sağlayan:** Kutay (AI Advisory Service) · **Çağıran:** Tarık (Core, `/api/ai/recommendation` içinde sarmalanır)
-
-> Değişiklik: Önceki versiyonda tek bir `String` dönüyordu. Esra'nın istediği yapılandırılmış response için artık bir kayıt (record) dönüyor.
 
 ```java
 public interface EnergyAdvisoryService {
@@ -150,20 +184,17 @@ public record AdvisoryResult(
 ) {}
 ```
 
-Core, bu `AdvisoryResult`'ı alıp `homeId`, `homeName` ve `generatedAt` (ISO 8601, timezone'lu) ile sarmalayarak REST response'una çevirir.
+Core, bu `AdvisoryResult`'ı alıp `homeId`, `homeName` ve `generatedAt` (ISO 8601, timezone'lu) ile sarmalayarak REST response'una çevirir. `ApplianceAnomaly.consecutiveBreaches`, bölüm 1.4'teki 3-kere-üst-üste kuralına göre Core'un Ignite'ta tuttuğu sayaçtan gelir.
 
-### 3.1 AI Advisory Service — ayrı mikroservis, internal HTTP sözleşmesi (v3 — yeni)
+### 3.1 AI Advisory Service — ayrı mikroservis, internal HTTP sözleşmesi (v3)
 
-Mimari diyagramda AI Advisory Service, Core'dan ayrı bir kutu olarak gösterildi. Bu yüzden `EnergyAdvisoryService` Java arayüzü aynı JVM içinde import edilmiyor; Kutay'ın `ai-advisory` servisi **kendi portunda (8081)** ayrı bir Spring Boot uygulaması olarak çalışır (`ai-advisory/` klasörü), Core buna HTTP üzerinden bağlanır.
+Kutay'ın `ai-advisory` servisi **kendi portunda (8081)** ayrı bir Spring Boot uygulaması olarak çalışır, Core buna HTTP üzerinden bağlanır.
 
 **Endpoint:** `POST http://localhost:8081/internal/advisory`
-**Request body:** `EnergyAdvisoryContext` (yukarıdaki JSON şeması)
-**Response body:** `AdvisoryResult` (yukarıdaki JSON şeması)
-**Hata:** AI çağrısı başarısız olursa (Gemini API hatası, `GEMINI_API_KEY` eksik vb.) `503` + bölüm 6'daki ortak hata formatı döner.
+**Request body:** `EnergyAdvisoryContext` · **Response body:** `AdvisoryResult`
+**Hata:** `503` + bölüm 6'daki ortak hata formatı.
 
-Core, `/api/ai/recommendation` isteğini aldığında arka planda bu internal endpoint'i çağırıp sonucu sarmalar. `AI_ADVISORY_BASE_URL` env değişkeni ile Core'a bu servisin adresi verilecek (local'de `http://localhost:8081`).
-
-Gemini'ye gönderilen prompt, modelin **sadece** `AdvisoryResult` şemasına uygun JSON döndürmesini ister (markdown/açıklama olmadan); `ai-advisory` servisi olası ```` ```json ```` code fence'lerini otomatik temizleyip parse eder.
+`AI_ADVISORY_BASE_URL` env değişkeni ile Core'a bu servisin adresi verilecek (local'de `http://localhost:8081`).
 
 ## 4. Kademeli Ceza Tarifesi (Ekip Kararı — spec dışı ek kural)
 
@@ -178,7 +209,7 @@ Orijinal ödev tek seviyeli ("premium penalty rate") bir ceza tanımlıyor. Ekip
 
 ## 5. Sayısal Değer Formatı
 
-Backend değerleri birimleriyle birlikte string döndürmez. `269.5` doğru, `"269.5 kWh"` yanlış. Birim eklemek (kWh, TL, %, W) frontend'in işi.
+Backend değerleri birimleriyle birlikte string döndürmez. `269.5` doğru, `"269.5 kWh"` yanlış.
 
 ## 6. Hata Response Formatı (tüm endpoint'lerde ortak)
 ```json
@@ -202,11 +233,11 @@ Backend değerleri birimleriyle birlikte string döndürmez. `269.5` doğru, `"2
 
 ## 7. CORS
 
-Backend, `http://localhost:5173` origin'ine izin vermeli. Spring Boot'ta tek tek controller'da `@CrossOrigin` yerine merkezi (global) `CorsConfigurationSource` bean'i kullanılacak (CryptoScope'ta yaptığımız gibi).
+Backend, `http://localhost:5173` origin'ine izin vermeli. Merkezi (global) `CorsConfigurationSource` bean'i kullanılacak.
 
 ## 8. Canlı Veri / Polling (v1)
 
-İlk sürüm için normal REST polling yeterli: Frontend `/api/homes`'u **5 saniyede bir** çağırır, backend en son Kafka/telemetry kaydını yansıtacak şekilde bu sıklığı sorunsuz karşılayabilmeli. WebSocket/SSE ileride değerlendirilecek, v1 kapsamında değil.
+Frontend `/api/homes`'u **5 saniyede bir** çağırır.
 
 ## 9. Tarih-Saat Formatı
 
@@ -218,18 +249,19 @@ ISO 8601, timezone'lu: `2026-07-21T16:30:00+03:00`.
 2. `GET /api/homes` (ilk etapta mock JSON dönebilir)
 3. `GET /api/homes/{id}`
 4. CORS ayarı
-5. `GET /api/analytics`
-6. Hata response yapısı
-7. `GET /api/ai/recommendation` (AI Advisory Service hazır — bkz. bölüm 3.1)
-8. Kafka/telemetry gerçek veri entegrasyonu (Telemetry Sensors hazır — bkz. bölüm 1.1)
+5. `POST /api/homes/register` (bkz. bölüm 2.5 — Sensors'ın registration dinleyicisi buna bağlı)
+6. `GET /api/analytics`
+7. Hata response yapısı
+8. `GET /api/ai/recommendation` (AI Advisory Service hazır — bkz. bölüm 3.1)
+9. Kafka/telemetry gerçek veri entegrasyonu (Telemetry Sensors hazır — bkz. bölüm 1.1, Ignite cache hazır — bkz. bölüm 1.3)
 
 ## 11. Ortam Değişkenleri (herkes için ortak)
 
 | Değişken | Açıklama |
 |---|---|
 | `KAFKA_BOOTSTRAP_SERVERS` | `localhost:9092` (local) |
-| `POSTGRES_URL` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | docker-compose'daki `powerpulse_db` bilgileri (port: **5433**, host'ta 5432 çakışması nedeniyle değiştirildi) |
-| `IGNITE_HOST` | `localhost:10800` |
+| `POSTGRES_URL` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | docker-compose'daki `powerpulse_db` bilgileri (port: **5433**) |
+| `IGNITE_ADDRESS` | `localhost:10800` (Ignite thin client adresi) |
 | `GEMINI_API_KEY` | AI Advisory Service için, export edilecek |
 | `GEMINI_MODEL` | varsayılan: `gemini-3-flash-preview` |
 | `AI_ADVISORY_BASE_URL` | Core için, varsayılan: `http://localhost:8081` |
