@@ -1,0 +1,103 @@
+/* ===========================
+   RESPONSIVE
+=========================== */
+
+@media (max-width: 950px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 800px) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .header-actions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .navigation {
+    width: 100%;
+  }
+
+  .navigation button {
+    flex: 1;
+  }
+
+  .live-status {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 700px) {
+  .ai-flip-card,
+  .ai-flip-card-inner,
+  .ai-flip-card-face {
+    min-height: 350px;
+  }
+
+  .ai-card-content h3 {
+    font-size: 20px;
+  }
+
+  .ai-card-content strong {
+    font-size: 19px;
+  }
+}
+
+@media (max-width: 650px) {
+  .app {
+    width: min(100% - 32px, 1200px);
+    padding: 24px 0;
+  }
+
+  .header h1 {
+    font-size: 34px;
+  }
+
+  .metrics,
+  .modal-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .search-filter {
+    flex-direction: column;
+  }
+
+  .search-filter select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal {
+    padding: 24px 18px;
+  }
+
+  .modal-header {
+    padding-right: 36px;
+  }
+
+  .appliance-item {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+}

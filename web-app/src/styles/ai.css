@@ -1,0 +1,198 @@
+/* ===========================
+   AI RECOMMENDATION
+=========================== */
+
+.ai-recommendation-wrapper {
+  margin: 18px 0 24px;
+}
+
+.ai-flip-card {
+  width: 100%;
+  min-height: 310px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  perspective: 1200px;
+}
+
+.ai-flip-card-inner {
+  position: relative;
+  width: 100%;
+  min-height: 310px;
+  transition: transform 0.7s ease;
+  transform-style: preserve-3d;
+}
+
+.ai-flip-card.is-flipped .ai-flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.ai-flip-card-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  min-height: 310px;
+  flex-direction: column;
+  padding: 24px;
+  border: 1px solid #dce5f0;
+  border-radius: 20px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: 0 12px 30px rgba(24, 34, 51, 0.08);
+}
+
+.ai-flip-card-front {
+  background:
+    radial-gradient(circle at top right, rgba(23, 105, 170, 0.16), transparent 38%),
+    linear-gradient(145deg, #ffffff, #f4f8fd);
+}
+
+.ai-flip-card-back {
+  background:
+    radial-gradient(circle at bottom left, rgba(32, 178, 107, 0.16), transparent 38%),
+    linear-gradient(145deg, #ffffff, #f4fbf7);
+  transform: rotateY(180deg);
+}
+
+.ai-flip-card:hover .ai-flip-card-face {
+  box-shadow: 0 20px 40px rgba(24, 34, 51, 0.13);
+}
+
+.ai-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ai-card-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 14px;
+  background: #eaf3fb;
+  color: #1769aa;
+  font-size: 24px;
+}
+
+.ai-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(23, 105, 170, 0.1);
+  color: #1769aa;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ai-card-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  padding: 18px 0;
+}
+
+.ai-card-content h3 {
+  margin: 0 0 10px;
+  color: #172033;
+  font-size: 23px;
+}
+
+.ai-card-content p {
+  margin: 0 0 14px;
+  color: #667085;
+  line-height: 1.6;
+}
+
+.ai-card-content strong {
+  color: #1769aa;
+  font-size: 22px;
+}
+
+.ai-card-content ul {
+  margin: 0 0 16px;
+  padding-left: 20px;
+  color: #475467;
+  line-height: 1.6;
+}
+
+.ai-card-content li + li {
+  margin-top: 7px;
+}
+
+.ai-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #667085;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rotate-icon {
+  display: inline-block;
+  font-size: 20px;
+  transition: transform 0.25s ease;
+}
+
+.ai-flip-card:hover .rotate-icon {
+  transform: rotate(45deg);
+}
+
+.gemini-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 12px;
+  background: #1769aa;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.gemini-button:hover {
+  background: #12598f;
+  transform: translateY(-1px);
+}
+
+.gemini-button:active {
+  transform: translateY(0);
+}
+
+.gemini-message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid #c7d7fe;
+  border-radius: 12px;
+  background: #eff8ff;
+  color: #344054;
+  font-size: 14px;
+}
+
+.gemini-message button {
+  border: none;
+  background: transparent;
+  color: #667085;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
