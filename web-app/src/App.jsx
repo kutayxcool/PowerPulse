@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./styles/index.css";
-import { homes } from "./data/homes";
+import { getHomes } from "./services/homeService";
 
 import Header from "./components/Header";
 import HomeModal from "./components/HomeModal";
@@ -10,7 +10,7 @@ import LoadingScreen from "./components/LoadingScreen";
 import ErrorScreen from "./components/ErrorScreen";
 
 function App() {
-  const [liveHomes, setLiveHomes] = useState(homes);
+  const [liveHomes, setLiveHomes] = useState([]);
   const [selectedHomeId, setSelectedHomeId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -43,36 +43,34 @@ function App() {
     return "normal";
   };
 
-  const loadDashboardData = () => {
+  const loadDashboardData = async () => {
     setIsLoading(true);
     setError(null);
 
-    const loadingTimer = setTimeout(() => {
-      try {
-        if (!Array.isArray(homes)) {
-          throw new Error("Ev verileri geçerli formatta değil.");
-        }
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1200));
 
-        setLiveHomes(homes);
-        setLastUpdated(new Date());
-      } catch (loadError) {
-        console.error("Dashboard verileri yüklenemedi:", loadError);
+      const data = await getHomes();
 
-        setError(
-          "Enerji verileri yüklenirken bir sorun oluştu. Lütfen bağlantınızı kontrol edip tekrar deneyin."
-        );
-      } finally {
-        setIsLoading(false);
+      if (!Array.isArray(data)) {
+        throw new Error("Ev verileri geçerli formatta değil.");
       }
-    }, 1200);
 
-    return loadingTimer;
+      setLiveHomes(data);
+      setLastUpdated(new Date());
+    } catch (loadError) {
+      console.error("Dashboard verileri yüklenemedi:", loadError);
+
+      setError(
+        "Enerji verileri yüklenirken bir sorun oluştu. Lütfen bağlantınızı kontrol edip tekrar deneyin."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    const loadingTimer = loadDashboardData();
-
-    return () => clearTimeout(loadingTimer);
+    loadDashboardData();
   }, []);
 
   useEffect(() => {
