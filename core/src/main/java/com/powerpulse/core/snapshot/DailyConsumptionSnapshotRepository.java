@@ -23,7 +23,8 @@ public interface DailyConsumptionSnapshotRepository
             UUID homeId,
             LocalDate snapshotDate
     );
-
+    Optional<DailyConsumptionSnapshot>
+    findTopByHomeIdOrderBySnapshotDateDesc(UUID homeId);
     @Query("""
             SELECT
                 snapshot.snapshotDate AS day,
