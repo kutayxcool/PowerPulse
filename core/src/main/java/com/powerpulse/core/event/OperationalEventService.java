@@ -2,6 +2,7 @@ package com.powerpulse.core.event;
 
 import com.powerpulse.core.appliance.Appliance;
 import com.powerpulse.core.home.Home;
+import com.powerpulse.core.notification.NotificationLogService;
 import com.powerpulse.core.telemetry.HomeLiveState;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,11 +13,14 @@ import java.time.OffsetDateTime;
 public class OperationalEventService {
 
     private final OperationalEventRepository eventRepository;
+    private final NotificationLogService notificationLogService;
 
     public OperationalEventService(
-            OperationalEventRepository eventRepository
+            OperationalEventRepository eventRepository,
+            NotificationLogService notificationLogService
     ) {
         this.eventRepository = eventRepository;
+        this.notificationLogService = notificationLogService;
     }
 
     @Transactional
@@ -142,6 +146,13 @@ public class OperationalEventService {
                         message,
                         eventTime
                 )
+        );
+
+        notificationLogService.createPendingEmail(
+                home,
+                appliance,
+                eventType,
+                message
         );
     }
 }
