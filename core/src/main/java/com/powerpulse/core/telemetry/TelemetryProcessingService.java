@@ -4,7 +4,9 @@ import com.powerpulse.core.appliance.Appliance;
 import com.powerpulse.core.appliance.ApplianceRepository;
 import com.powerpulse.core.billing.BillingCalculation;
 import com.powerpulse.core.billing.BillingCalculator;
+import com.powerpulse.core.billing.BillingLedgerService;
 import com.powerpulse.core.billing.EnergyConsumptionCalculator;
+import com.powerpulse.core.event.OperationalEventService;
 import com.powerpulse.core.home.Home;
 import com.powerpulse.core.ignite.IgniteCacheService;
 import org.slf4j.Logger;
@@ -27,19 +29,25 @@ public class TelemetryProcessingService {
     private final BillingCalculator billingCalculator;
     private final LiveStateStore liveStateStore;
     private final IgniteCacheService igniteCacheService;
+    private final OperationalEventService operationalEventService;
+    private final BillingLedgerService billingLedgerService;
 
     public TelemetryProcessingService(
             ApplianceRepository applianceRepository,
             EnergyConsumptionCalculator energyCalculator,
             BillingCalculator billingCalculator,
             LiveStateStore liveStateStore,
-            IgniteCacheService igniteCacheService
+            IgniteCacheService igniteCacheService,
+            OperationalEventService operationalEventService,
+            BillingLedgerService billingLedgerService
     ) {
         this.applianceRepository = applianceRepository;
         this.energyCalculator = energyCalculator;
         this.billingCalculator = billingCalculator;
         this.liveStateStore = liveStateStore;
         this.igniteCacheService = igniteCacheService;
+        this.operationalEventService = operationalEventService;
+        this.billingLedgerService = billingLedgerService;
     }
 
     public void process(TelemetryPayload payload) {
@@ -70,6 +78,9 @@ public class TelemetryProcessingService {
                         payload.homeId(),
                         payload.applianceId()
                 );
+        int previousBreachCount = previousState
+                .map(ApplianceLiveState::consecutiveBreaches)
+                .orElse(0);
 
         if (isOldOrDuplicate(payload, previousState)) {
             log.warn(
@@ -142,6 +153,21 @@ public class TelemetryProcessingService {
         // Resmî işlem sırası: önce Ignite canlı durumu güncellenir.
         liveStateStore.saveAppliance(newApplianceState);
         liveStateStore.saveHome(newHomeState);
+        billingLedgerService.record(
+                home,
+                appliance,
+                payload.timestamp(),
+                billing
+        );
+        operationalEventService.recordTransitions(
+                home,
+                appliance,
+                previousHomeState,
+                newHomeState,
+                previousBreachCount,
+                breachCounter,
+                payload.timestamp()
+        );
 
         log.info(
                 "Telemetry işlendi: home={}, appliance={}, watt={}, addedKwh={}, tier={}",

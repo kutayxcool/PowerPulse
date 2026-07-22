@@ -1,6 +1,8 @@
 package com.powerpulse.core.snapshot;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,5 +22,19 @@ public interface DailyConsumptionSnapshotRepository
     Optional<DailyConsumptionSnapshot> findByHomeIdAndSnapshotDate(
             UUID homeId,
             LocalDate snapshotDate
+    );
+
+    @Query("""
+            SELECT
+                snapshot.snapshotDate AS day,
+                SUM(snapshot.consumptionKwh) AS consumption
+            FROM DailyConsumptionSnapshot snapshot
+            WHERE snapshot.snapshotDate BETWEEN :startDate AND :endDate
+            GROUP BY snapshot.snapshotDate
+            ORDER BY snapshot.snapshotDate ASC
+            """)
+    List<DailyConsumptionTotalProjection> findDailyTotals(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
     );
 }
