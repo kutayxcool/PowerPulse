@@ -9,7 +9,6 @@ import com.powerpulse.core.registration.RegistrationApplianceEvent;
 import com.powerpulse.core.registration.RegistrationPublisher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,23 +18,32 @@ import java.util.UUID;
 @Service
 public class HomeRegistrationService {
 
-    private final HomeRepository homeRepository;
+    private final HomePersistenceService persistenceService;
     private final RegistrationPublisher registrationPublisher;
     private final BigDecimal baseRatePerKwh;
 
     public HomeRegistrationService(
-            HomeRepository homeRepository,
+            HomePersistenceService persistenceService,
             RegistrationPublisher registrationPublisher,
             @Value("${powerpulse.billing.base-rate-per-kwh}")
             BigDecimal baseRatePerKwh
     ) {
-        this.homeRepository = homeRepository;
+        this.persistenceService = persistenceService;
         this.registrationPublisher = registrationPublisher;
         this.baseRatePerKwh = baseRatePerKwh;
     }
 
-    @Transactional
     public RegisteredHomeResponse register(RegisterHomeRequest request) {
+        Home home = createHome(request);
+
+        Home savedHome = persistenceService.save(home);
+
+        registrationPublisher.publish(toRegistrationEvent(savedHome));
+
+        return toResponse(savedHome);
+    }
+
+    private Home createHome(RegisterHomeRequest request) {
         Home home = new Home(
                 UUID.randomUUID(),
                 request.name().trim(),
@@ -44,21 +52,17 @@ public class HomeRegistrationService {
                 baseRatePerKwh
         );
 
-        request.appliances().forEach(applianceRequest -> {
+        request.appliances().forEach(requestAppliance -> {
             Appliance appliance = new Appliance(
                     UUID.randomUUID(),
-                    applianceRequest.name().trim(),
-                    applianceRequest.safeLimitWatt()
+                    requestAppliance.name().trim(),
+                    requestAppliance.safeLimitWatt()
             );
 
             home.addAppliance(appliance);
         });
 
-        Home savedHome = homeRepository.saveAndFlush(home);
-
-        registrationPublisher.publish(toRegistrationEvent(savedHome));
-
-        return toResponse(savedHome);
+        return home;
     }
 
     private HomeRegistrationEvent toRegistrationEvent(Home home) {

@@ -27,10 +27,8 @@ public class HomeController {
     ) {
         RegisteredHomeResponse response = registrationService.register(request);
 
-        URI location = URI.create("/api/homes/" + response.id());
-
         return ResponseEntity
-                .created(location)
+                .created(URI.create("/api/homes/" + response.id()))
                 .body(response);
     }
 }
