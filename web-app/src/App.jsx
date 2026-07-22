@@ -19,16 +19,16 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const getStatusText = (status) => {
-    if (status === "danger") {
-      return "Kota aşıldı";
+  const getStatusByQuota = (quotaPercentage) => {
+    if (quotaPercentage > 100) {
+      return "danger";
     }
 
-    if (status === "warning") {
-      return "Sınıra yaklaşıldı";
+    if (quotaPercentage >= 90) {
+      return "warning";
     }
 
-    return "Normal";
+    return "normal";
   };
 
   const getStatusByQuota = (quotaPercentage) => {
@@ -109,7 +109,7 @@ function App() {
       );
 
       setLastUpdated(new Date());
-    }, 5000);
+    }, 2000);
 
     return () => clearInterval(intervalId);
   }, [error]);
