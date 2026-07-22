@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -27,10 +28,15 @@ public class HomeDashboardController {
     public ResponseEntity<List<HomeSummaryResponse>> getHomes() {
         return ResponseEntity.ok(dashboardService.getHomes());
     }
+
     @GetMapping("/{homeId}")
     public ResponseEntity<HomeDetailResponse> getHome(
-            @PathVariable UUID homeId
+            @PathVariable UUID homeId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "7") int size
     ) {
-        return ResponseEntity.ok(dashboardService.getHome(homeId));
+        return ResponseEntity.ok(
+                dashboardService.getHome(homeId, page, size)
+        );
     }
 }

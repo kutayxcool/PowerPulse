@@ -2,11 +2,13 @@ package com.powerpulse.core.dashboard;
 
 import com.powerpulse.core.appliance.Appliance;
 import com.powerpulse.core.dashboard.dto.ApplianceSummaryResponse;
+import com.powerpulse.core.dashboard.dto.DailyConsumptionResponse;
 import com.powerpulse.core.dashboard.dto.HomeDetailResponse;
 import com.powerpulse.core.dashboard.dto.HomeSummaryResponse;
 import com.powerpulse.core.home.Home;
 import com.powerpulse.core.home.HomeNotFoundException;
 import com.powerpulse.core.home.HomeRepository;
+import com.powerpulse.core.snapshot.DailyConsumptionSnapshotRepository;
 import com.powerpulse.core.telemetry.ApplianceLiveState;
 import com.powerpulse.core.telemetry.HomeLiveState;
 import com.powerpulse.core.telemetry.LiveStateStore;
@@ -15,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,13 +27,16 @@ public class HomeDashboardService {
 
     private final HomeRepository homeRepository;
     private final LiveStateStore liveStateStore;
+    private final DailyConsumptionSnapshotRepository snapshotRepository;
 
     public HomeDashboardService(
             HomeRepository homeRepository,
-            LiveStateStore liveStateStore
+            LiveStateStore liveStateStore,
+            DailyConsumptionSnapshotRepository snapshotRepository
     ) {
         this.homeRepository = homeRepository;
         this.liveStateStore = liveStateStore;
+        this.snapshotRepository = snapshotRepository;
     }
 
     @Transactional(readOnly = true)
@@ -42,7 +49,13 @@ public class HomeDashboardService {
     }
 
     @Transactional(readOnly = true)
-    public HomeDetailResponse getHome(UUID homeId) {
+    public HomeDetailResponse getHome(
+            UUID homeId,
+            int page,
+            int size
+    ) {
+        validatePagination(page, size);
+
         Home home = homeRepository
                 .findById(homeId)
                 .orElseThrow(() -> new HomeNotFoundException(homeId));
@@ -57,6 +70,9 @@ public class HomeDashboardService {
                 .map(this::toApplianceResponse)
                 .toList();
 
+        List<DailyConsumptionResponse> dailyConsumption =
+                getDailyConsumption(homeId, homeState, page, size);
+
         if (homeState == null) {
             return new HomeDetailResponse(
                     home.getId(),
@@ -64,8 +80,9 @@ public class HomeDashboardService {
                     BigDecimal.ZERO,
                     BigDecimal.ZERO,
                     BigDecimal.ZERO.setScale(2),
-                    "NORMAL",
-                    appliances
+                    "normal",
+                    appliances,
+                    dailyConsumption
             );
         }
 
@@ -80,7 +97,8 @@ public class HomeDashboardService {
                 homeState.currentBillAmount(),
                 quotaPercentage,
                 determineHomeStatus(homeState.quotaPercentage()),
-                appliances
+                appliances,
+                dailyConsumption
         );
     }
 
@@ -116,7 +134,7 @@ public class HomeDashboardService {
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
                 BigDecimal.ZERO.setScale(2),
-                "NORMAL"
+                "normal"
         );
     }
 
@@ -158,21 +176,84 @@ public class HomeDashboardService {
                 appliance.getName(),
                 BigDecimal.ZERO.setScale(2),
                 appliance.getSafeLimitWatt(),
-                "NORMAL",
+                "normal",
                 null
         );
     }
 
+    private List<DailyConsumptionResponse> getDailyConsumption(
+            UUID homeId,
+            HomeLiveState homeState,
+            int page,
+            int size
+    ) {
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(6);
+        LocalDate yesterday = today.minusDays(1);
+
+        List<DailyConsumptionResponse> values = new ArrayList<>();
+
+        // Bugünün tüketimi Ignite'taki canlı durumdan alınır.
+        BigDecimal todayConsumption = homeState == null
+                ? BigDecimal.ZERO
+                : homeState.totalConsumptionKwh();
+
+        values.add(
+                new DailyConsumptionResponse(
+                        today,
+                        todayConsumption
+                )
+        );
+
+        // Önceki günlerin tüketimleri PostgreSQL'den alınır.
+        snapshotRepository
+                .findByHomeIdAndSnapshotDateBetweenOrderBySnapshotDateDesc(
+                        homeId,
+                        startDate,
+                        yesterday
+                )
+                .stream()
+                .map(snapshot -> new DailyConsumptionResponse(
+                        snapshot.getSnapshotDate(),
+                        snapshot.getConsumptionKwh()
+                ))
+                .forEach(values::add);
+
+        int fromIndex = page * size;
+
+        if (fromIndex >= values.size()) {
+            return List.of();
+        }
+
+        int toIndex = Math.min(fromIndex + size, values.size());
+
+        return List.copyOf(values.subList(fromIndex, toIndex));
+    }
+
+    private void validatePagination(int page, int size) {
+        if (page < 0) {
+            throw new InvalidPaginationException(
+                    "Sayfa numarası sıfırdan küçük olamaz."
+            );
+        }
+
+        if (size < 1 || size > 100) {
+            throw new InvalidPaginationException(
+                    "Sayfa boyutu 1 ile 100 arasında olmalıdır."
+            );
+        }
+    }
+
     private String determineHomeStatus(double quotaPercentage) {
         if (quotaPercentage > 100.0) {
-            return "DANGER";
+            return "danger";
         }
 
         if (quotaPercentage >= 90.0) {
-            return "WARNING";
+            return "warning";
         }
 
-        return "NORMAL";
+        return "normal";
     }
 
     private String determineApplianceStatus(
@@ -180,16 +261,16 @@ public class HomeDashboardService {
             ApplianceLiveState state
     ) {
         if (state.anomalous() || state.consecutiveBreaches() >= 3) {
-            return "DANGER";
+            return "danger";
         }
 
         BigDecimal currentWattage =
                 BigDecimal.valueOf(state.currentWattage());
 
         if (currentWattage.compareTo(appliance.getSafeLimitWatt()) > 0) {
-            return "WARNING";
+            return "warning";
         }
 
-        return "NORMAL";
+        return "normal";
     }
 }

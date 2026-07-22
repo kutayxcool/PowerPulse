@@ -11,6 +11,7 @@ public record HomeDetailResponse(
         BigDecimal bill,
         BigDecimal quotaPercentage,
         String status,
-        List<ApplianceSummaryResponse> appliances
+        List<ApplianceSummaryResponse> appliances,
+        List<DailyConsumptionResponse> dailyConsumption
 ) {
 }
