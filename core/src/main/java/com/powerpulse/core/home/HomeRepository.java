@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface HomeRepository extends JpaRepository<Home, UUID> {
-
+    List<Home> findAllByOrderByCreatedAtDesc();
     @Override
     @EntityGraph(attributePaths = "appliances")
     Optional<Home> findById(UUID id);

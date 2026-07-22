@@ -1,5 +1,6 @@
 package com.powerpulse.core.exception;
 
+import com.powerpulse.core.home.HomeNotFoundException;
 import com.powerpulse.core.ignite.IgniteUnavailableException;
 import com.powerpulse.core.registration.RegistrationPublishException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -64,7 +65,17 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
     }
-
+    @ExceptionHandler(HomeNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleHomeNotFound(
+            HomeNotFoundException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.NOT_FOUND,
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+    }
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnexpectedError(
             Exception exception,
