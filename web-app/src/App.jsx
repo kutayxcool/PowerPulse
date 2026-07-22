@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/Analytics";
 import LoadingScreen from "./components/LoadingScreen";
 import ErrorScreen from "./components/ErrorScreen";
+import AddHomeModal from "./components/AddHomeModal";
 
 function App() {
   const [liveHomes, setLiveHomes] = useState([]);
@@ -18,29 +19,34 @@ function App() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const getStatusText = (status) => {
-    if (status === "danger") {
-      return "Kota aşıldı";
-    }
-
-    if (status === "warning") {
-      return "Sınıra yaklaşıldı";
-    }
-
-    return "Normal";
-  };
+  const [isAddHomeModalOpen, setIsAddHomeModalOpen] = useState(false);
 
   const getStatusByQuota = (quotaPercentage) => {
-    if (quotaPercentage >= 100) {
+    if (quotaPercentage > 100) {
       return "danger";
     }
 
-    if (quotaPercentage >= 80) {
+    if (quotaPercentage >= 90) {
       return "warning";
     }
 
     return "normal";
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case "normal":
+        return "Normal";
+
+      case "warning":
+        return "Sınıra Yaklaşıldı";
+
+      case "danger":
+        return "Kota Aşıldı";
+
+      default:
+        return "Normal";
+    }
   };
 
   const loadDashboardData = async () => {
@@ -56,7 +62,13 @@ function App() {
         throw new Error("Ev verileri geçerli formatta değil.");
       }
 
-      setLiveHomes(data);
+      const normalizedHomes = data.map((home) => ({
+        ...home,
+        status:
+          home.status || getStatusByQuota(home.quotaPercentage),
+      }));
+
+      setLiveHomes(normalizedHomes);
       setLastUpdated(new Date());
     } catch (loadError) {
       console.error("Dashboard verileri yüklenemedi:", loadError);
@@ -109,7 +121,7 @@ function App() {
       );
 
       setLastUpdated(new Date());
-    }, 5000);
+    }, 2000);
 
     return () => clearInterval(intervalId);
   }, [error]);
@@ -118,13 +130,26 @@ function App() {
     loadDashboardData();
   };
 
+  const handleAddHome = (newHome) => {
+      setLiveHomes((previousHomes) => [
+        ...previousHomes,
+        newHome,
+      ]);
+
+      setLastUpdated(new Date());
+      setActivePage("dashboard");
+  };
+
   const filteredHomes = liveHomes.filter((home) => {
-    const matchesSearch = home.name
+    const homeName = home.name || "";
+
+    const matchesSearch = homeName
       .toLocaleLowerCase("tr-TR")
       .includes(searchTerm.toLocaleLowerCase("tr-TR"));
 
     const matchesStatus =
-      selectedStatus === "all" || home.status === selectedStatus;
+      selectedStatus === "all" ||
+      home.status === selectedStatus;
 
     return matchesSearch && matchesStatus;
   });
@@ -138,7 +163,12 @@ function App() {
   }
 
   if (error) {
-    return <ErrorScreen message={error} onRetry={handleRetry} />;
+    return (
+      <ErrorScreen
+        message={error}
+        onRetry={handleRetry}
+      />
+    );
   }
 
   return (
@@ -147,6 +177,7 @@ function App() {
         activePage={activePage}
         onPageChange={setActivePage}
         lastUpdated={lastUpdated}
+        onAddHome={() => setIsAddHomeModalOpen(true)}
       />
 
       <main>
@@ -171,6 +202,11 @@ function App() {
       <HomeModal
         home={selectedHome}
         onClose={() => setSelectedHomeId(null)}
+      />
+      <AddHomeModal
+        isOpen={isAddHomeModalOpen}
+        onClose={() => setIsAddHomeModalOpen(false)}
+        onAddHome={handleAddHome}
       />
     </div>
   );

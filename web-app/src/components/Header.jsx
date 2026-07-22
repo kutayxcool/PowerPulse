@@ -1,4 +1,4 @@
-function Header({ activePage, onPageChange,lastUpdated }) {
+function Header({ activePage, onPageChange,lastUpdated, onAddHome}) {
   return (
     <header className="header">
       <div>
@@ -23,6 +23,14 @@ function Header({ activePage, onPageChange,lastUpdated }) {
             onClick={() => onPageChange("analytics")}
           >
             Analizler
+          </button>
+
+          <button
+            type="button"
+            className="header-add-home-button"
+            onClick={onAddHome}
+          >
+            + Yeni Ev Ekle
           </button>
         </nav>
 
