@@ -10,7 +10,7 @@ public record HomeLiveState(
         BigDecimal currentBillAmount,
         double quotaPercentage,
         int penaltyTier,
-        double penaltyMultiplier,
+        BigDecimal penaltyMultiplier,
         OffsetDateTime updatedAt
 ) {
 }
