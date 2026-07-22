@@ -15,4 +15,7 @@ public interface HomeRepository extends JpaRepository<Home, UUID> {
 
     @EntityGraph(attributePaths = "appliances")
     List<Home> findAllByOrderByCreatedAtAsc();
+
+    @EntityGraph(attributePaths = "appliances")
+    Optional<Home> findWithAppliancesById(UUID id);
 }

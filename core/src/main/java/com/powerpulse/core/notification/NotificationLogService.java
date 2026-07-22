@@ -39,6 +39,24 @@ public class NotificationLogService {
         notificationRepository.save(notification);
     }
 
+    @Transactional
+    public void createAiRecommendationEmail(
+            Home home,
+            String subject,
+            String message
+    ) {
+        notificationRepository.save(
+                new NotificationLog(
+                        home,
+                        null,
+                        NotificationType.AI_RECOMMENDATION,
+                        home.getContactEmail(),
+                        subject,
+                        message
+                )
+        );
+    }
+
     private String determineSubject(NotificationType type) {
         return switch (type) {
             case QUOTA_WARNING_80 ->

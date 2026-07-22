@@ -1,5 +1,6 @@
 package com.powerpulse.core.exception;
 
+import com.powerpulse.core.advisory.AiAdvisoryUnavailableException;
 import com.powerpulse.core.dashboard.InvalidPaginationException;
 import com.powerpulse.core.home.HomeNotFoundException;
 import com.powerpulse.core.ignite.IgniteUnavailableException;
@@ -41,7 +42,19 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
     }
+    @ExceptionHandler(AiAdvisoryUnavailableException.class)
+    public ResponseEntity<ApiErrorResponse> handleAiUnavailable(
+            AiAdvisoryUnavailableException exception,
+            HttpServletRequest request
+    ) {
+        log.error("AI tavsiye işlemi başarısız oldu.", exception);
 
+        return buildResponse(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "AI tavsiye servisine şu anda ulaşılamıyor.",
+                request.getRequestURI()
+        );
+    }
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> handleUnreadableMessage(
             HttpMessageNotReadableException exception,
