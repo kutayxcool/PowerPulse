@@ -95,11 +95,15 @@ public class IgniteStateRecoveryService {
                                 home.getBudgetQuotaKwh()
                         );
 
+                // Gunduz/gece kirilimi snapshot'ta tutulmuyor, kurtarma
+                // sonrasi sifirdan baslar (sadece toplam tuketim kalici).
                 HomeLiveState recoveredState =
                         new HomeLiveState(
                                 home.getId(),
                                 latestSnapshot
                                         .getConsumptionKwh(),
+                                BigDecimal.ZERO.setScale(10),
+                                BigDecimal.ZERO.setScale(10),
                                 latestSnapshot
                                         .getBillAmount(),
                                 quotaPercentage,

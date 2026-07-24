@@ -1,6 +1,9 @@
 package com.powerpulse.core.exception;
 
 import com.powerpulse.core.advisory.AiAdvisoryUnavailableException;
+import com.powerpulse.core.appliance.ApplianceNotFoundException;
+import com.powerpulse.core.auth.EmailAlreadyRegisteredException;
+import com.powerpulse.core.auth.InvalidCredentialsException;
 import com.powerpulse.core.dashboard.InvalidPaginationException;
 import com.powerpulse.core.home.HomeNotFoundException;
 import com.powerpulse.core.ignite.IgniteUnavailableException;
@@ -87,6 +90,42 @@ public class GlobalExceptionHandler {
     ) {
         return buildResponse(
                 HttpStatus.NOT_FOUND,
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
+    @ExceptionHandler(ApplianceNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleApplianceNotFound(
+            ApplianceNotFoundException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.NOT_FOUND,
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
+    @ExceptionHandler(EmailAlreadyRegisteredException.class)
+    public ResponseEntity<ApiErrorResponse> handleEmailAlreadyRegistered(
+            EmailAlreadyRegisteredException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.CONFLICT,
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ApiErrorResponse> handleInvalidCredentials(
+            InvalidCredentialsException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.UNAUTHORIZED,
                 exception.getMessage(),
                 request.getRequestURI()
         );

@@ -33,6 +33,15 @@ public class Appliance {
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
+    // Cihaz "Durdur"/"Baslat" ile veya bir zamanlayicinin suresi
+    // dolunca kapatilabilir. false iken TelemetryProcessingService
+    // gelen telemetriyi tuketime/faturaya yansitmaz (bkz.
+    // TelemetryProcessingService.process()) - anlik guc 0 W gosterilir,
+    // birikmis tuketim oldugu gibi donar. Varsayilan (yeni eklenen her
+    // cihaz icin) true'dur.
+    @Column(name = "is_active", nullable = false)
+    private boolean active = true;
+
     protected Appliance() {
     }
 
@@ -41,10 +50,15 @@ public class Appliance {
         this.name = name;
         this.safeLimitWatt = safeLimitWatt;
         this.createdAt = OffsetDateTime.now();
+        this.active = true;
     }
 
     public void assignToHome(Home home) {
         this.home = home;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public UUID getId() {
@@ -65,5 +79,9 @@ public class Appliance {
 
     public OffsetDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public boolean isActive() {
+        return active;
     }
 }

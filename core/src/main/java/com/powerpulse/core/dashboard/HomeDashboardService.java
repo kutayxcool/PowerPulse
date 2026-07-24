@@ -40,9 +40,9 @@ public class HomeDashboardService {
     }
 
     @Transactional(readOnly = true)
-    public List<HomeSummaryResponse> getHomes() {
+    public List<HomeSummaryResponse> getHomes(UUID ownerId) {
         return homeRepository
-                .findAllByOrderByCreatedAtDesc()
+                .findAllByOwnerIdOrderByCreatedAtDesc(ownerId)
                 .stream()
                 .map(this::toSummaryResponse)
                 .toList();
@@ -51,13 +51,14 @@ public class HomeDashboardService {
     @Transactional(readOnly = true)
     public HomeDetailResponse getHome(
             UUID homeId,
+            UUID ownerId,
             int page,
             int size
     ) {
         validatePagination(page, size);
 
         Home home = homeRepository
-                .findById(homeId)
+                .findByIdAndOwnerId(homeId, ownerId)
                 .orElseThrow(() -> new HomeNotFoundException(homeId));
 
         HomeLiveState homeState = liveStateStore
@@ -82,7 +83,11 @@ public class HomeDashboardService {
                     BigDecimal.ZERO.setScale(2),
                     "normal",
                     appliances,
-                    dailyConsumption
+                    dailyConsumption,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    home.getBudgetQuotaKwh(),
+                    home.getBaseRatePerKwh()
             );
         }
 
@@ -98,7 +103,11 @@ public class HomeDashboardService {
                 quotaPercentage,
                 determineHomeStatus(homeState.quotaPercentage()),
                 appliances,
-                dailyConsumption
+                dailyConsumption,
+                homeState.dayConsumptionKwh(),
+                homeState.nightConsumptionKwh(),
+                home.getBudgetQuotaKwh(),
+                home.getBaseRatePerKwh()
         );
     }
 
@@ -164,7 +173,9 @@ public class HomeDashboardService {
                 currentWattage,
                 appliance.getSafeLimitWatt(),
                 determineApplianceStatus(appliance, state),
-                state.lastTelemetryAt()
+                state.lastTelemetryAt(),
+                state.consumptionKwh(),
+                appliance.isActive()
         );
     }
 
@@ -177,7 +188,9 @@ public class HomeDashboardService {
                 BigDecimal.ZERO.setScale(2),
                 appliance.getSafeLimitWatt(),
                 "normal",
-                null
+                null,
+                BigDecimal.ZERO,
+                appliance.isActive()
         );
     }
 

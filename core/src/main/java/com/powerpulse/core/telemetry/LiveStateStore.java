@@ -60,6 +60,20 @@ public class LiveStateStore {
         );
     }
 
+    public void removeHome(UUID homeId) {
+        cacheService.remove(
+                IgniteCacheNames.HOME_LIVE_STATE,
+                homeId.toString()
+        );
+    }
+
+    public void removeAppliance(UUID homeId, UUID applianceId) {
+        cacheService.remove(
+                IgniteCacheNames.APPLIANCE_LIVE_STATE,
+                applianceKey(homeId, applianceId)
+        );
+    }
+
     private String applianceKey(UUID homeId, UUID applianceId) {
         return homeId + ":" + applianceId;
     }

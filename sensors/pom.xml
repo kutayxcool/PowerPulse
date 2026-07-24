@@ -35,6 +35,26 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
+        <!-- Sadece RestTemplate icin: Core'un REST API'sinden ev/cihaz listesini
+             cekmek amaciyla eklendi (CoreHomeRegistry). Tomcat/Spring MVC getirmemesi
+             icin spring-boot-starter-web yerine bilerek sadece spring-web eklendi -
+             Sensors'in kendisi bir web sunucusu degil, sadece bir HTTP client'i. -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+
+        <!-- Apache Ignite 2.x thin client - son telemetry degerini in-memory cache'e yazmak icin.
+             Not: Ignite 2.x serisinde thin client siniflari (IgniteClient, ClientCache) ayri bir
+             "ignite-client" modulunde degil, ignite-core icinde geliyor ("ignite-client" adli
+             ayri modul sadece Ignite 3.x icin var). docker-compose'daki apacheignite/ignite:2.16.0
+             ile ayni versiyonu kullaniyoruz. -->
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-core</artifactId>
+            <version>2.16.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

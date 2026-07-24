@@ -1,6 +1,8 @@
 package com.powerpulse.core.advisory;
 
+import com.powerpulse.core.auth.User;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,10 +25,11 @@ public class HomeAdvisoryController {
     @GetMapping("/{homeId}/recommendation")
     public ResponseEntity<RecommendationResponse>
     generateRecommendation(
-            @PathVariable UUID homeId
+            @PathVariable UUID homeId,
+            @AuthenticationPrincipal User currentUser
     ) {
         return ResponseEntity.ok(
-                advisoryService.generate(homeId)
+                advisoryService.generate(homeId, currentUser.getId())
         );
     }
 }

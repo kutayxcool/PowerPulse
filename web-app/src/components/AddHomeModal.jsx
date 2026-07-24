@@ -1,118 +1,11 @@
 import { useState } from "react";
-
-const applianceCatalog = {
-  Buzdolabı: {
-    Arçelik: [
-      {
-        model: "Eco 90",
-        wattage: 90,
-        safeLimitWatt: 120,
-      },
-      {
-        model: "Fresh 110",
-        wattage: 110,
-        safeLimitWatt: 140,
-      },
-    ],
-    Bosch: [
-      {
-        model: "Serie 4",
-        wattage: 100,
-        safeLimitWatt: 135,
-      },
-      {
-        model: "Serie 6",
-        wattage: 115,
-        safeLimitWatt: 150,
-      },
-    ],
-  },
-
-  Klima: {
-    Samsung: [
-      {
-        model: "WindFree 1200",
-        wattage: 1200,
-        safeLimitWatt: 1600,
-      },
-      {
-        model: "WindFree 1800",
-        wattage: 1800,
-        safeLimitWatt: 2200,
-      },
-    ],
-    Vestel: [
-      {
-        model: "Flora 1200",
-        wattage: 1150,
-        safeLimitWatt: 1550,
-      },
-      {
-        model: "Flora 1800",
-        wattage: 1750,
-        safeLimitWatt: 2150,
-      },
-    ],
-  },
-
-  "Çamaşır Makinesi": {
-    Beko: [
-      {
-        model: "CM 8100",
-        wattage: 500,
-        safeLimitWatt: 700,
-      },
-      {
-        model: "CM 9100",
-        wattage: 650,
-        safeLimitWatt: 850,
-      },
-    ],
-    Siemens: [
-      {
-        model: "iQ300",
-        wattage: 600,
-        safeLimitWatt: 800,
-      },
-      {
-        model: "iQ500",
-        wattage: 750,
-        safeLimitWatt: 950,
-      },
-    ],
-  },
-
-  Televizyon: {
-    LG: [
-      {
-        model: "NanoCell 55",
-        wattage: 90,
-        safeLimitWatt: 130,
-      },
-      {
-        model: "OLED 65",
-        wattage: 130,
-        safeLimitWatt: 180,
-      },
-    ],
-    Samsung: [
-      {
-        model: "Crystal UHD 55",
-        wattage: 100,
-        safeLimitWatt: 140,
-      },
-      {
-        model: "Neo QLED 65",
-        wattage: 145,
-        safeLimitWatt: 195,
-      },
-    ],
-  },
-};
-
-const initialType = Object.keys(applianceCatalog)[0];
-const initialBrand = Object.keys(applianceCatalog[initialType])[0];
-const initialModel = applianceCatalog[initialType][initialBrand][0].model;
+import {
+  applianceCatalog,
+  getApplianceIcon,
+  initialApplianceType as initialType,
+  initialApplianceBrand as initialBrand,
+  initialApplianceModel as initialModel,
+} from "../data/applianceCatalog";
 
 function AddHomeModal({ isOpen, onClose, onAddHome }) {
   const [homeName, setHomeName] = useState("");
@@ -122,9 +15,11 @@ function AddHomeModal({ isOpen, onClose, onAddHome }) {
   const [applianceType, setApplianceType] = useState(initialType);
   const [brand, setBrand] = useState(initialBrand);
   const [model, setModel] = useState(initialModel);
+  const [applianceName, setApplianceName] = useState(initialType);
 
   const [appliances, setAppliances] = useState([]);
   const [formError, setFormError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) {
     return null;
@@ -145,6 +40,7 @@ function AddHomeModal({ isOpen, onClose, onAddHome }) {
     setApplianceType(selectedType);
     setBrand(firstBrand);
     setModel(firstModel);
+    setApplianceName(selectedType);
   };
 
   const handleBrandChange = (event) => {
@@ -157,9 +53,14 @@ function AddHomeModal({ isOpen, onClose, onAddHome }) {
   };
 
   const handleAddAppliance = () => {
+    if (!applianceName.trim()) {
+      setFormError("Lütfen cihaza bir isim verin.");
+      return;
+    }
+
     const newAppliance = {
       id: crypto.randomUUID(),
-      name: applianceType,
+      name: applianceName.trim(),
       brand,
       model: selectedAppliance.model,
       wattage: selectedAppliance.wattage,
@@ -172,6 +73,7 @@ function AddHomeModal({ isOpen, onClose, onAddHome }) {
       newAppliance,
     ]);
 
+    setApplianceName(applianceType);
     setFormError("");
   };
 
@@ -191,6 +93,7 @@ function AddHomeModal({ isOpen, onClose, onAddHome }) {
     setApplianceType(initialType);
     setBrand(initialBrand);
     setModel(initialModel);
+    setApplianceName(initialType);
 
     setAppliances([]);
     setFormError("");
@@ -201,7 +104,7 @@ function AddHomeModal({ isOpen, onClose, onAddHome }) {
     onClose();
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const numericQuota = Number(budgetQuotaKwh);
@@ -226,30 +129,35 @@ function AddHomeModal({ isOpen, onClose, onAddHome }) {
       return;
     }
 
-    const newHome = {
-      id: crypto.randomUUID(),
+    // Core'un POST /api/homes/register sozlesmesi sadece isim ve
+    // safeLimitWatt bekliyor; id, marka/model gibi alanlar sadece
+    // bu formda gosterim amacli, backend'e gonderilmiyor. Gercek
+    // id'ler kayittan sonra Core tarafindan uretiliyor.
+    const registrationPayload = {
       name: homeName.trim(),
       contactEmail: contactEmail.trim(),
       budgetQuotaKwh: numericQuota,
-      consumption: 0,
-      bill: 0,
-      quotaPercentage: 0,
-      status: "normal",
-      appliances,
-      dailyConsumption: [
-        { day: "Pzt", consumption: 0 },
-        { day: "Sal", consumption: 0 },
-        { day: "Çar", consumption: 0 },
-        { day: "Per", consumption: 0 },
-        { day: "Cum", consumption: 0 },
-        { day: "Cmt", consumption: 0 },
-        { day: "Paz", consumption: 0 },
-      ],
+      appliances: appliances.map((appliance) => ({
+        name: appliance.name,
+        safeLimitWatt: appliance.safeLimitWatt,
+      })),
     };
 
-    onAddHome(newHome);
-    resetForm();
-    onClose();
+    setFormError("");
+    setIsSubmitting(true);
+
+    try {
+      await onAddHome(registrationPayload);
+      resetForm();
+      onClose();
+    } catch (submitError) {
+      console.error("Ev kaydedilemedi:", submitError);
+      setFormError(
+        "Ev kaydedilirken bir sorun oluştu. Backend'in çalıştığından emin olup tekrar deneyin."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -385,6 +293,17 @@ function AddHomeModal({ isOpen, onClose, onAddHome }) {
               </label>
             </div>
 
+            <label className="add-home-field">
+              <span>Cihaz adı</span>
+
+              <input
+                type="text"
+                value={applianceName}
+                onChange={(event) => setApplianceName(event.target.value)}
+                placeholder={applianceType}
+              />
+            </label>
+
             <div className="add-home-power-card">
               <div>
                 <span>Güç tüketimi</span>
@@ -430,10 +349,7 @@ function AddHomeModal({ isOpen, onClose, onAddHome }) {
                     key={appliance.id}
                   >
                     <div className="add-home-device-icon">
-                      {appliance.name === "Buzdolabı" && "🧊"}
-                      {appliance.name === "Klima" && "❄️"}
-                      {appliance.name === "Çamaşır Makinesi" && "🫧"}
-                      {appliance.name === "Televizyon" && "📺"}
+                      {getApplianceIcon(appliance.name)}
                     </div>
 
                     <div className="add-home-device-info">
@@ -474,6 +390,7 @@ function AddHomeModal({ isOpen, onClose, onAddHome }) {
               type="button"
               className="add-home-cancel-button"
               onClick={handleClose}
+              disabled={isSubmitting}
             >
               İptal
             </button>
@@ -481,8 +398,9 @@ function AddHomeModal({ isOpen, onClose, onAddHome }) {
             <button
               type="submit"
               className="add-home-save-button"
+              disabled={isSubmitting}
             >
-              Evi Kaydet
+              {isSubmitting ? "Kaydediliyor..." : "Evi Kaydet"}
             </button>
           </div>
         </form>

@@ -1,9 +1,9 @@
-export async function getRecommendation() {
-    return {
-        title: "AI Recommendation",
-        recommendations: [
-            "Backend hazır olduğunda gerçek öneriler gelecek."
-        ],
-        estimatedSavingPercentage: 15
-    };
+import { apiGet, apiPost } from "./api";
+
+export async function getRecommendation(homeId) {
+  return apiGet(`/homes/${homeId}/recommendation`);
+}
+
+export async function askAssistant(homeId, question) {
+  return apiPost(`/homes/${homeId}/ask`, { question });
 }

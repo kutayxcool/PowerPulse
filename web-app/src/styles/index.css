@@ -6,6 +6,9 @@
 @import "./ai.css";
 @import "./states.css";
 @import "./responsive.css";
+@import "./auth.css";
+@import "./dark-theme.css";
+@import "./homie-hints.css";
 
 .add-home-overlay {
   position: fixed;
@@ -297,6 +300,124 @@
 
 .add-home-remove-button:hover {
   background: #fee2e2;
+}
+
+/* Duzenle modalindaki cihaz satiri: Sil'in yaninda Durdur/Baslat +
+   zamanlayici da oldugu icin bu satirda 4. bir "auto" sutuna gerek
+   yok - ucuncu sutun tek bir "aksiyonlar" kumesidir (bkz.
+   .add-home-device-actions). Bu, AddHomeModal'daki (4 sutunlu, güç
+   bilgisi olan) paylasilan .add-home-device-item duzenini etkilemez. */
+.add-home-device-item.add-home-device-item--edit {
+  grid-template-columns: 42px 1fr auto;
+}
+
+.add-home-device-status {
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.add-home-device-status--on {
+  color: #16a34a;
+}
+
+.add-home-device-status--off {
+  color: #b45309;
+}
+
+.add-home-device-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-home-toggle-button {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.add-home-toggle-button--stop {
+  background: #fff7e6;
+  color: #ad6800;
+}
+
+.add-home-toggle-button--stop:hover {
+  background: #ffedc2;
+}
+
+.add-home-toggle-button--start {
+  background: #eafaf1;
+  color: #14804a;
+}
+
+.add-home-toggle-button--start:hover {
+  background: #d3f5e2;
+}
+
+.add-home-toggle-button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.add-home-timer-select {
+  height: 34px;
+  max-width: 120px;
+  border: 1px solid #d9e0ea;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 12px;
+  padding: 0 6px;
+  cursor: pointer;
+}
+
+/* "+ Yeni Cihaz Ekle" tetikleyici butonu - eskiden tam genislikte,
+   agir bir birincil buton gibiydi ("cok kotu duruyor" geri
+   bildirimi); artik daha kompakt, ikincil/kesikli-cerceve bir buton.
+   Form icindeki gercek gonderim butonu ("+ Cihazi Ekle") hala
+   .add-home-device-button'i (birincil, dolu mavi/tema rengi) kullanir
+   ve bundan etkilenmez. */
+.add-home-open-form-button {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  margin: 14px auto 0;
+  padding: 9px 18px;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 10px;
+  background: transparent;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.add-home-open-form-button:hover {
+  border-color: #1d4ed8;
+  background: #eff6ff;
+}
+
+@media (max-width: 700px) {
+  .add-home-device-item.add-home-device-item--edit {
+    grid-template-columns: 42px 1fr;
+  }
+
+  .add-home-device-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
 }
 
 .add-home-error {

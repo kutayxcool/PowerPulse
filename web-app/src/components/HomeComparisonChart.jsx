@@ -7,8 +7,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import InfoHint from "./InfoHint";
 
-function HomeComparisonChart({ homes }) {
+function HomeComparisonChart({ homes, onOpenHint }) {
   const chartData = homes.map((home) => ({
     name: home.name.replace(" Evi", ""),
     consumption: home.consumption,
@@ -16,6 +17,12 @@ function HomeComparisonChart({ homes }) {
 
   return (
     <section className="comparison-chart">
+      <InfoHint
+        id="chart-comparison"
+        text="Bu grafik, kayıtlı evlerinin anlık toplam tüketimini yan yana karşılaştırır. Sütunlardan hangi evin şu anda daha çok, hangisinin daha az enerji harcadığını hızlıca görebilirsin."
+        onOpen={onOpenHint}
+      />
+
       <div className="comparison-chart-header">
         <div>
           <h3>Ev Bazlı Tüketim Karşılaştırması</h3>

@@ -7,6 +7,8 @@ import java.util.UUID;
 public record HomeLiveState(
         UUID homeId,
         BigDecimal totalConsumptionKwh,
+        BigDecimal dayConsumptionKwh,
+        BigDecimal nightConsumptionKwh,
         BigDecimal currentBillAmount,
         double quotaPercentage,
         int penaltyTier,

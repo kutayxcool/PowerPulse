@@ -1,0 +1,180 @@
+/* ===========================
+   HOMIE BILGI IPUCLARI ("?" butonlari + Homie'nin isaret etmesi)
+=========================== */
+
+.info-hint-button {
+  position: absolute;
+  /* Kartin ICINDE degil, kosesinin hemen DISINDA kucuk bir rozet gibi
+     durur - boylece kartin kendi ic icerigiyle (yuzde yazisi, yenile
+     dugmesi vb.) hicbir zaman cakismaz, kartin boyutuna/duzenine
+     bagimli olmadan her zaman guvenli bir konumdur. */
+  top: -8px;
+  right: -8px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid #1769aa;
+  background: rgba(23, 105, 170, 0.08);
+  color: #1769aa;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.info-hint-button:hover {
+  background: rgba(23, 105, 170, 0.18);
+  transform: scale(1.08);
+}
+
+.homie-pointer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  cursor: default;
+}
+
+.homie-pointer-svg {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+
+/* Homie'nin kolu: kalin mavi bir cizgi, govdesindeki gercek kol
+   cizgileriyle ayni kalinlik/renkte (bkz. HomieMascot.jsx strokeWidth
+   7). Hazir/durgun degil - sayfa yuklendiginde gorunmez baslar
+   (dashoffset = uzunluk), ".is-drawing" eklendiginde (gercek uzunluk
+   olculdukten sonra) Homie'den hedefe dogru CIZILEREK uzanir. */
+.homie-pointer-path {
+  fill: none;
+  stroke: #1769aa;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.homie-pointer-path.is-drawing {
+  animation: homie-arm-draw 0.55s cubic-bezier(0.3, 0.7, 0.35, 1) forwards;
+}
+
+@keyframes homie-arm-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Ucundaki "el" artik duz bir daire degil, asagiyi (hedefi) isaret
+   eden bir parmak/el gibi gorunur: yukarida yuvarlak bir "yumruk/el
+   ayasi", altta ona baglanan, ucu hedefe tam deyen dar ve sivrice bir
+   "isaret parmagi". Cizgi (kol) her zaman hedefe YUKARIDAN indigi icin
+   parmak da hep asagi dogru gosterir - margin ile kutunun ALT UCU tam
+   endX/endY noktasina denk gelecek sekilde konumlanir. */
+.homie-pointer-hand {
+  position: fixed;
+  z-index: 501;
+  width: 16px;
+  height: 30px;
+  margin-left: -8px;
+  margin-top: -30px;
+  pointer-events: none;
+  opacity: 0;
+  transform-origin: bottom center;
+  transform: scale(0.4);
+  animation: homie-hand-arrive 0.25s ease-out forwards;
+}
+
+.homie-pointer-hand::before {
+  /* el ayasi / yumruk kismi - ust tarafta, genis ve yuvarlak */
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 1px;
+  width: 14px;
+  height: 15px;
+  border-radius: 50% 50% 45% 45%;
+  background: #1769aa;
+  border: 3px solid #ffffff;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.32);
+}
+
+.homie-pointer-hand::after {
+  /* isaret parmagi - alt tarafta, dar ve ucu sivrice, tam hedefe deger */
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 5px;
+  width: 6px;
+  height: 17px;
+  border-radius: 3px 3px 2px 2px;
+  background: #1769aa;
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.28);
+}
+
+@keyframes homie-hand-arrive {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.homie-hint-bubble {
+  position: fixed;
+  z-index: 502;
+  padding: 14px 16px;
+  border-radius: 4px 18px 18px 18px;
+  background: #fffaf3;
+  border: 1px solid #e8dcc8;
+  box-shadow: 0 16px 36px rgba(24, 34, 51, 0.2);
+}
+
+.homie-hint-bubble-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #1769aa;
+  font-weight: 700;
+}
+
+.homie-hint-bubble-header span {
+  flex: 1;
+}
+
+.homie-hint-close {
+  border: none;
+  background: transparent;
+  color: #667085;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.homie-hint-bubble p {
+  margin: 0;
+  color: #475467;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+[data-theme] .homie-hint-bubble {
+  background: var(--t-surface);
+  border-color: var(--t-border);
+}
+
+[data-theme] .homie-hint-bubble p {
+  color: var(--t-sub);
+}

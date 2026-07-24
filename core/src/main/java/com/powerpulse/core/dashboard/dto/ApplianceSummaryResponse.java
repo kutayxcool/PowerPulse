@@ -10,6 +10,8 @@ public record ApplianceSummaryResponse(
         BigDecimal watt,
         BigDecimal safeLimitWatt,
         String status,
-        OffsetDateTime lastTelemetryAt
+        OffsetDateTime lastTelemetryAt,
+        BigDecimal consumption,
+        boolean active
 ) {
 }

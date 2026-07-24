@@ -73,6 +73,46 @@ public class TelemetryProcessingService {
             return;
         }
 
+        // Cihaz "Durdur" ile ya da zamanlayıcı bitince pasif hale
+        // getirilmişse, gelen telemetri tüketime/faturaya YANSITILMAZ -
+        // birikmiş tüketim olduğu gibi donar, anlık güç 0 W olarak
+        // gösterilir (cihaz gerçekten "kapalı" gibi görünür). Sensors
+        // modülü hâlâ sahte telemetri gönderiyor olabilir; asıl
+        // durdurma etkisi burada, tek noktadan uygulanır.
+        if (!appliance.isActive()) {
+            Optional<ApplianceLiveState> frozenPreviousState =
+                    liveStateStore.findAppliance(
+                            payload.homeId(),
+                            payload.applianceId()
+                    );
+
+            BigDecimal frozenConsumption = frozenPreviousState
+                    .map(ApplianceLiveState::consumptionKwh)
+                    .orElse(BigDecimal.ZERO.setScale(10));
+
+            int frozenBreaches = frozenPreviousState
+                    .map(ApplianceLiveState::consecutiveBreaches)
+                    .orElse(0);
+
+            liveStateStore.saveAppliance(new ApplianceLiveState(
+                    home.getId(),
+                    appliance.getId(),
+                    appliance.getName(),
+                    0.0,
+                    frozenConsumption,
+                    frozenBreaches,
+                    false,
+                    payload.timestamp()
+            ));
+
+            log.info(
+                    "Cihaz durduruldu, telemetry işlenmedi (tüketim donduruldu): appliance={}",
+                    appliance.getId()
+            );
+
+            return;
+        }
+
         Optional<ApplianceLiveState> previousState =
                 liveStateStore.findAppliance(
                         payload.homeId(),
@@ -104,6 +144,8 @@ public class TelemetryProcessingService {
                 .findHome(home.getId())
                 .orElseGet(() -> initialHomeState(home));
 
+        boolean isDaytimeReading = isDaytime(payload.timestamp());
+
         BillingCalculation billing = billingCalculator.calculate(
                 previousHomeState.totalConsumptionKwh(),
                 addedKwh,
@@ -120,6 +162,15 @@ public class TelemetryProcessingService {
                 .totalConsumptionKwh()
                 .add(addedKwh);
 
+        // Ignite'ta uygulama guncellemesinden once yazilmis eski
+        // (dayConsumptionKwh/nightConsumptionKwh icermeyen) canli
+        // durum kayitlari null donebilir; null-safe okunur.
+        BigDecimal newDayConsumption = orZero(previousHomeState.dayConsumptionKwh())
+                .add(isDaytimeReading ? addedKwh : BigDecimal.ZERO);
+
+        BigDecimal newNightConsumption = orZero(previousHomeState.nightConsumptionKwh())
+                .add(isDaytimeReading ? BigDecimal.ZERO : addedKwh);
+
         BigDecimal newBillAmount = previousHomeState
                 .currentBillAmount()
                 .add(billing.incrementalCost());
@@ -129,12 +180,20 @@ public class TelemetryProcessingService {
                 home.getBudgetQuotaKwh()
         );
 
+        BigDecimal previousApplianceConsumption = previousState
+                .map(ApplianceLiveState::consumptionKwh)
+                .orElse(BigDecimal.ZERO.setScale(10));
+
+        BigDecimal newApplianceConsumption =
+                previousApplianceConsumption.add(addedKwh);
+
         ApplianceLiveState newApplianceState =
                 new ApplianceLiveState(
                         home.getId(),
                         appliance.getId(),
                         appliance.getName(),
                         payload.wattage(),
+                        newApplianceConsumption,
                         breachCounter,
                         breachCounter >= 3,
                         payload.timestamp()
@@ -143,6 +202,8 @@ public class TelemetryProcessingService {
         HomeLiveState newHomeState = new HomeLiveState(
                 home.getId(),
                 newTotalConsumption,
+                newDayConsumption,
+                newNightConsumption,
                 newBillAmount,
                 quotaPercentage,
                 billing.endingPenaltyTier(),
@@ -217,9 +278,15 @@ public class TelemetryProcessingService {
     }
 
     private HomeLiveState initialHomeState(Home home) {
+        // Gunduz/gece kirilimi Postgres'te ayri tutulmuyor (sadece
+        // toplam kalici), bu yuzden Core yeniden baslatildiginda
+        // gunduz/gece sayaclari sifirdan basliyor. Toplam tuketim
+        // (totalConsumptionKwh) ise Home entity'sinden geri yukleniyor.
         return new HomeLiveState(
                 home.getId(),
                 home.getTotalConsumptionKwh(),
+                BigDecimal.ZERO.setScale(10),
+                BigDecimal.ZERO.setScale(10),
                 home.getCurrentBillAmount(),
                 calculateQuotaPercentage(
                         home.getTotalConsumptionKwh(),
@@ -229,6 +296,16 @@ public class TelemetryProcessingService {
                 BigDecimal.ONE,
                 home.getUpdatedAt()
         );
+    }
+
+    // Basit iki dilimli tarife: 06:00-22:00 gunduz, 22:00-06:00 gece.
+    private boolean isDaytime(OffsetDateTime timestamp) {
+        int hour = timestamp.getHour();
+        return hour >= 6 && hour < 22;
+    }
+
+    private BigDecimal orZero(BigDecimal value) {
+        return value == null ? BigDecimal.ZERO.setScale(10) : value;
     }
 
     private double calculateQuotaPercentage(

@@ -1,0 +1,187 @@
+/* ===========================
+   GIRIS / KAYIT SAYFALARI
+=========================== */
+
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  background: linear-gradient(160deg, #f7f9fc 0%, #eef4ff 100%);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 36px 32px;
+  border: 1px solid #e3e7ee;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.auth-brand-logo {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: #edf4ff;
+  color: #1769aa;
+}
+
+.auth-brand h1 {
+  margin: 0;
+  color: #1769aa;
+  font-size: 32px;
+}
+
+.auth-subtitle {
+  margin: 0 0 28px;
+  color: #667085;
+  font-size: 14px;
+  text-align: center;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-field span {
+  color: #344054;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.auth-field input {
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid #d9e0ea;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #172033;
+  font-size: 14px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.auth-field input:focus {
+  border-color: #1769aa;
+  box-shadow: 0 0 0 3px rgba(23, 105, 170, 0.12);
+}
+
+.auth-error {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.auth-submit-button {
+  margin-top: 4px;
+  padding: 13px 16px;
+  border: none;
+  border-radius: 12px;
+  background: #1769aa;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.auth-submit-button:hover:not(:disabled) {
+  background: #12598f;
+}
+
+.auth-submit-button:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.auth-switch {
+  margin: 22px 0 0;
+  color: #667085;
+  font-size: 13px;
+  text-align: center;
+}
+
+.auth-switch-button {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #1769aa;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.auth-switch-button:hover {
+  text-decoration: underline;
+}
+
+[data-theme] .auth-page {
+  background: var(--t-bg);
+}
+
+[data-theme] .auth-card {
+  background: var(--t-surface);
+  border-color: var(--t-border);
+}
+
+[data-theme] .auth-brand-logo {
+  background: var(--t-accent-soft);
+}
+
+[data-theme] .auth-brand h1,
+[data-theme] .auth-field span {
+  color: var(--t-text);
+}
+
+[data-theme] .auth-subtitle,
+[data-theme] .auth-switch {
+  color: var(--t-sub);
+}
+
+[data-theme] .auth-field input {
+  background: var(--t-surface);
+  border-color: var(--t-border);
+  color: var(--t-text);
+}
+
+[data-theme] .auth-submit-button {
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+}
+
+[data-theme] .auth-submit-button:hover:not(:disabled) {
+  background: var(--t-accent);
+  opacity: 0.88;
+}
+
+[data-theme] .auth-switch-button {
+  color: var(--t-accent);
+}

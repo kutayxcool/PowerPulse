@@ -49,6 +49,23 @@ public class IgniteCacheService {
         }
     }
 
+    public void remove(String cacheName, String key) {
+        try {
+            ClientCache<String, String> cache = clientManager
+                    .getClient()
+                    .getOrCreateCache(cacheName);
+
+            cache.remove(key);
+        } catch (ClientException exception) {
+            clientManager.invalidate();
+
+            throw new IgniteUnavailableException(
+                    "Ignite cache kaydı silinemedi: " + cacheName,
+                    exception
+            );
+        }
+    }
+
     public void putCounter(String key, int value) {
         try {
             ClientCache<String, Integer> cache = clientManager

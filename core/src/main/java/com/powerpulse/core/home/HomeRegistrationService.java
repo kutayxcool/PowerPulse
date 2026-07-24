@@ -1,6 +1,7 @@
 package com.powerpulse.core.home;
 
 import com.powerpulse.core.appliance.Appliance;
+import com.powerpulse.core.auth.User;
 import com.powerpulse.core.home.dto.RegisterHomeRequest;
 import com.powerpulse.core.home.dto.RegisteredApplianceResponse;
 import com.powerpulse.core.home.dto.RegisteredHomeResponse;
@@ -33,8 +34,8 @@ public class HomeRegistrationService {
         this.baseRatePerKwh = baseRatePerKwh;
     }
 
-    public RegisteredHomeResponse register(RegisterHomeRequest request) {
-        Home home = createHome(request);
+    public RegisteredHomeResponse register(RegisterHomeRequest request, User owner) {
+        Home home = createHome(request, owner);
 
         Home savedHome = persistenceService.save(home);
 
@@ -43,13 +44,14 @@ public class HomeRegistrationService {
         return toResponse(savedHome);
     }
 
-    private Home createHome(RegisterHomeRequest request) {
+    private Home createHome(RegisterHomeRequest request, User owner) {
         Home home = new Home(
                 UUID.randomUUID(),
                 request.name().trim(),
                 request.contactEmail().trim().toLowerCase(Locale.ROOT),
                 request.budgetQuotaKwh(),
-                baseRatePerKwh
+                baseRatePerKwh,
+                owner
         );
 
         request.appliances().forEach(requestAppliance -> {

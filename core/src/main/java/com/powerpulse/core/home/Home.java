@@ -1,11 +1,14 @@
 package com.powerpulse.core.home;
 
 import com.powerpulse.core.appliance.Appliance;
+import com.powerpulse.core.auth.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -22,6 +25,14 @@ public class Home {
 
     @Id
     private UUID id;
+
+    // Ev artik bir kullaniciya ait - "herkes kayit olabilecek ve
+    // kendi evlerini yonetebilecek" coklu kullanici sistemi. Tum
+    // sorgular (bkz. HomeRepository) sahiplige gore filtrelenir ki
+    // bir kullanici baskasinin evini goremesin/degistiremesin.
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
 
     @Column(nullable = false, length = 150)
     private String name;
@@ -63,13 +74,15 @@ public class Home {
             String name,
             String contactEmail,
             BigDecimal budgetQuotaKwh,
-            BigDecimal baseRatePerKwh
+            BigDecimal baseRatePerKwh,
+            User owner
     ) {
         this.id = id;
         this.name = name;
         this.contactEmail = contactEmail;
         this.budgetQuotaKwh = budgetQuotaKwh;
         this.baseRatePerKwh = baseRatePerKwh;
+        this.owner = owner;
         this.totalConsumptionKwh = BigDecimal.ZERO;
         this.currentBillAmount = BigDecimal.ZERO;
         this.createdAt = OffsetDateTime.now();
@@ -88,6 +101,10 @@ public class Home {
 
     public UUID getId() {
         return id;
+    }
+
+    public User getOwner() {
+        return owner;
     }
 
     public String getName() {

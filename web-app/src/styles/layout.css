@@ -3,36 +3,90 @@
 =========================== */
 
 .app {
-  width: min(1200px, 90%);
+  width: 98%;
   margin: auto;
   padding: 40px 0;
 }
 
 .header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
+  flex-direction: column;
+  gap: 14px;
   margin-bottom: 40px;
 }
 
-.header h1 {
-  margin: 4px 0 8px;
-  color: #1769aa;
-  font-size: 42px;
+.header-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
 }
 
-.header p {
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.brand-logo {
+  display: grid;
+  flex-shrink: 0;
+  width: 84px;
+  height: 84px;
+  place-items: center;
+  border-radius: 20px;
+  background: #edf4ff;
+  color: #1769aa;
+}
+
+.brand-logo svg {
+  width: 46px;
+  height: 46px;
+}
+
+.header h1 {
+  margin: 0;
+  color: #1769aa;
+  font-size: 54px;
+}
+
+.header h1 .brand-letter-box {
+  display: inline-grid;
+  place-items: center;
+  min-width: 0.82em;
+  height: 0.82em;
+  margin-right: 0.03em;
+  border-radius: 0.16em;
+  background: #1769aa;
+  color: #ffffff;
+  font-size: 0.82em;
+  line-height: 1;
+  vertical-align: -0.06em;
+}
+
+.header h1 .brand-letter-box span {
+  display: inline-block;
+  transform: translateY(-0.08em);
+}
+
+.header-tagline {
   margin: 0;
   color: #667085;
+  font-size: 14px;
 }
 
-.subtitle {
-  color: #14804a !important;
-  font-size: 13px;
+.header-tagline-badge {
+  display: inline-flex;
+  margin-right: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(20, 128, 74, 0.09);
+  color: #14804a;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.6px;
   text-transform: uppercase;
+  vertical-align: middle;
 }
 
 .header-actions {
@@ -42,6 +96,7 @@
 }
 
 .navigation {
+  position: relative;
   display: flex;
   gap: 8px;
   padding: 5px;
@@ -68,6 +123,24 @@
 .navigation button.active {
   background: #1769aa;
   color: #ffffff;
+}
+
+.header-account {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 6px;
+  border-left: 1px solid #e3e7ee;
+}
+
+.header-account-name {
+  max-width: 120px;
+  overflow: hidden;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .live-status {
@@ -119,6 +192,10 @@
     transform: scale(1);
     opacity: 1;
   }
+}
+
+.section-header {
+  position: relative;
 }
 
 .section-title,

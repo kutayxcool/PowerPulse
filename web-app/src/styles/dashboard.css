@@ -9,6 +9,7 @@
 }
 
 .card {
+  position: relative;
   width: 100%;
   padding: 22px;
   border: 1px solid #e3e7ee;
@@ -22,6 +23,30 @@
     transform 0.25s ease,
     box-shadow 0.25s ease,
     border-color 0.25s ease;
+}
+
+.card-edit-button {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid #e3e7ee;
+  border-radius: 10px;
+  background: #f8fafc;
+  font-size: 15px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.card-edit-button:hover {
+  border-color: #b8c7dc;
+  background: #edf4ff;
 }
 
 .card:hover {
@@ -85,7 +110,15 @@
 }
 
 .metrics strong {
-  font-size: 17px;
+  font-size: 19px;
+}
+
+.metric-sublabel {
+  display: block;
+  margin-top: 6px;
+  color: #8a94a6;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .quota-info {
@@ -145,12 +178,140 @@
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 18px;
-  margin-bottom: 36px;
+  margin-bottom: 24px;
+}
+
+.mini-trend-card {
+  margin-bottom: 0;
+}
+
+.mini-chart-container {
+  width: 100%;
+}
+
+/* Ust bolum: sol tarafta AI/Homie karti, ortada ozet + trend grafigi,
+   sagda butce ilerleme karti. Ayni AI karti Analizler sayfasinda da
+   (kendi sol sutununda) tekrar kullanilir - bkz. Analytics.jsx ve
+   analytics.css .analytics-top-grid. Dar ekranlarda tek sutuna doner. */
+.dashboard-top-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr) minmax(0, 300px);
+  align-items: start;
+  gap: 22px;
+  margin-bottom: 24px;
+}
+
+.dashboard-top-center {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.dashboard-top-side {
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-top-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.budget-progress-card {
+  position: relative;
+  margin-bottom: 24px;
+  padding: 18px 22px;
+  border: 1px solid #e3e7ee;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(24, 34, 51, 0.05);
+}
+
+.budget-progress-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.budget-progress-header h3 {
+  margin: 0;
+  color: #172033;
+  font-size: 16px;
+}
+
+.budget-progress-header strong {
+  color: #1769aa;
+  font-size: 16px;
+}
+
+.budget-progress-track {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 30px;
+  background: #e9edf2;
+}
+
+.budget-progress-bar {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.4s ease;
+}
+
+.budget-progress-bar.normal {
+  background: #20b26b;
+}
+
+.budget-progress-bar.warning {
+  background: #f5a623;
+}
+
+.budget-progress-bar.danger {
+  background: #e5484d;
+}
+
+.budget-progress-note {
+  margin: 8px 0 0;
+  color: #667085;
+  font-size: 13px;
+}
+
+.budget-progress-stats {
+  display: grid;
+  /* Bu kart artik dar bir yan sutunda (~300px) yasadigi icin
+     istatistikler her zaman alt alta diziliyor. */
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e3e7ee;
+}
+
+.budget-progress-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.budget-progress-stats span {
+  color: #667085;
+  font-size: 12px;
+}
+
+.budget-progress-stats strong {
+  color: #172033;
+  font-size: 17px;
+}
+
+.budget-progress-stats strong.budget-stat-danger {
+  color: #e5484d;
 }
 
 .summary-card {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 14px;

@@ -10,6 +10,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 @Service
 public class GeminiEnergyAdvisoryService
@@ -19,6 +20,22 @@ public class GeminiEnergyAdvisoryService
             LoggerFactory.getLogger(
                     GeminiEnergyAdvisoryService.class
             );
+
+    // Ayni ev icin art arda cagrilarda tuketim/kota rakamlari genelde
+    // degismedigi icin, prompt'a her seferinde farkli bir odak konusu
+    // ve rastgele bir varyasyon numarasi ekleniyor - boylece Gemini
+    // hep ayni/benzer cevabi uretmiyor, gercekten farkli tavsiyeler geliyor.
+    private static final List<String> FOCUS_THEMES = List.of(
+            "aydınlatma ve LED kullanımı",
+            "beyaz eşyaların (buzdolabı, çamaşır/bulaşık makinesi) verimli kullanımı",
+            "klima ve ısıtma/soğutma alışkanlıkları",
+            "bekleme (standby) modundaki cihazlar ve fişten çekme",
+            "gece tarifesi saatlerine cihaz kaydırma",
+            "cihazların güvenli güç limitine yakın çalışması",
+            "genel günlük enerji tüketim alışkanlıkları"
+    );
+
+    private final Random random = new Random();
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -66,6 +83,13 @@ public class GeminiEnergyAdvisoryService
                                             Map.of("text", prompt)
                                     )
                             )
+                    ),
+                    "generationConfig",
+                    Map.of(
+                            // Yuksek temperature + her cagrida degisen prompt,
+                            // ayni ev icin ust uste farkli tavsiyeler gelmesini saglar.
+                            "temperature", 1.0,
+                            "topP", 0.97
                     )
             );
 
@@ -115,6 +139,12 @@ public class GeminiEnergyAdvisoryService
                         first + "; " + second)
                 .orElse("");
 
+        String focusTheme = FOCUS_THEMES.get(
+                random.nextInt(FOCUS_THEMES.size())
+        );
+
+        int variationSeed = random.nextInt(100_000);
+
         return """
                 Sen PowerPulse enerji takip uygulamasının
                 enerji tasarrufu danışmanısın.
@@ -128,6 +158,11 @@ public class GeminiEnergyAdvisoryService
                 Güncel fatura: %.2f TL
                 Kota aşıldı mı: %s
                 Anomaliler: %s
+
+                Bu seferki tavsiyelerde özellikle şu konuya ağırlık ver:
+                %s. Daha önceki tavsiyelerinle birebir aynı cümleleri
+                tekrar etme, farklı kelimeler ve farklı bir bakış açısı kullan.
+                (varyasyon no: %d)
 
                 Yalnızca aşağıdaki şemaya uygun geçerli JSON döndür.
                 Markdown veya ek açıklama kullanma.
@@ -151,7 +186,9 @@ public class GeminiEnergyAdvisoryService
                         context.quotaBreached()
                                 ? "evet"
                                 : "hayır",
-                        anomalyText
+                        anomalyText,
+                        focusTheme,
+                        variationSeed
                 );
     }
 

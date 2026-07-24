@@ -9,6 +9,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -27,9 +28,20 @@ public class CorsConfig {
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of(allowedOrigin));
+        // Prod'da hem Vercel'deki asil domain hem de (istenirse) bir
+        // preview/staging URL'i veya yerel gelistirme adresi ayni anda
+        // izin verilmesi gerekebilir - bu yuzden virgulle ayrilmis
+        // birden fazla origin destekleniyor (ör. "https://powerpulse.
+        // vercel.app,http://localhost:5173"). Tek bir deger verilirse
+        // davranis oncekiyle birebir ayni kalir.
+        List<String> allowedOrigins = Arrays.stream(allowedOrigin.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .toList();
+
+        configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
         );
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Location"));

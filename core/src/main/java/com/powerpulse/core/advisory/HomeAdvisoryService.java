@@ -38,9 +38,9 @@ public class HomeAdvisoryService {
         this.notificationLogService = notificationLogService;
     }
 
-    public RecommendationResponse generate(UUID homeId) {
+    public RecommendationResponse generate(UUID homeId, UUID ownerId) {
         Home home = homeRepository
-                .findWithAppliancesById(homeId)
+                .findWithAppliancesByIdAndOwnerId(homeId, ownerId)
                 .orElseThrow(() ->
                         new HomeNotFoundException(homeId)
                 );
