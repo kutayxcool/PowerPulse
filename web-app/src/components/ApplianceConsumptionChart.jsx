@@ -6,6 +6,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import InfoHint from "./InfoHint";
 
 const COLORS = [
   "#1769aa",
@@ -16,7 +17,7 @@ const COLORS = [
   "#06b6d4",
 ];
 
-function ApplianceConsumptionChart({ homes }) {
+function ApplianceConsumptionChart({ homes, onOpenHint }) {
   const applianceTotals = homes
     .flatMap((home) => home.appliances)
     .reduce((totals, appliance) => {
@@ -37,6 +38,12 @@ function ApplianceConsumptionChart({ homes }) {
 
   return (
     <section className="analytics-card">
+      <InfoHint
+        id="chart-appliance"
+        text="Bu pasta grafik, toplam enerji tüketiminin cihaz türlerine (klima, buzdolabı, fırın gibi) göre nasıl dağıldığını gösterir. En büyük dilime bakarak en çok tüketen cihaz türünü buradan bulabilirsin."
+        onOpen={onOpenHint}
+      />
+
       <div className="analytics-card-header">
         <h3>Cihaz Bazlı Tüketim</h3>
         <p>Enerji tüketiminin cihaz türlerine göre dağılımı</p>
@@ -64,9 +71,9 @@ function ApplianceConsumptionChart({ homes }) {
             </Pie>
 
             <Tooltip
-              formatter={(value) => [
+              formatter={(value, name) => [
                 `${Number(value).toFixed(1)} kWh`,
-                "Tüketim",
+                name,
               ]}
             />
 

@@ -8,8 +8,9 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import InfoHint from "./InfoHint";
 
-function DayNightConsumptionChart({ homes }) {
+function DayNightConsumptionChart({ homes, onOpenHint }) {
   const chartData = homes.map((home) => ({
     name: home.name.replace(" Evi", ""),
     day: home.dayConsumption || 0,
@@ -18,6 +19,12 @@ function DayNightConsumptionChart({ homes }) {
 
   return (
     <section className="analytics-card">
+      <InfoHint
+        id="chart-daynight"
+        text="Bu grafik, her evin gündüz ve gece saatlerindeki tüketimini karşılaştırır. Gece çubuğu gündüzden yüksekse, tüketimini daha ucuz gece tarifesine kaydırarak faturanı düşürebilirsin."
+        onOpen={onOpenHint}
+      />
+
       <div className="analytics-card-header">
         <h3>Gündüz ve Gece Tüketimi</h3>
         <p>Evlerin tarife zamanlarına göre tüketim karşılaştırması</p>

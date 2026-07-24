@@ -3,12 +3,13 @@
 =========================== */
 
 .ai-recommendation-wrapper {
-  margin: 18px 0 24px;
+  position: relative;
+  margin: 0 0 24px;
 }
 
 .ai-flip-card {
   width: 100%;
-  min-height: 310px;
+  min-height: 380px;
   padding: 0;
   border: none;
   background: transparent;
@@ -20,7 +21,7 @@
 .ai-flip-card-inner {
   position: relative;
   width: 100%;
-  min-height: 310px;
+  min-height: 380px;
   transition: transform 0.7s ease;
   transform-style: preserve-3d;
 }
@@ -33,10 +34,10 @@
   position: absolute;
   inset: 0;
   display: flex;
-  min-height: 310px;
+  min-height: 380px;
   flex-direction: column;
-  padding: 24px;
-  border: 1px solid #dce5f0;
+  padding: 18px 20px;
+  border: 1px solid #e8dcc8;
   border-radius: 20px;
   overflow: hidden;
   backface-visibility: hidden;
@@ -46,14 +47,14 @@
 
 .ai-flip-card-front {
   background:
-    radial-gradient(circle at top right, rgba(23, 105, 170, 0.16), transparent 38%),
-    linear-gradient(145deg, #ffffff, #f4f8fd);
+    radial-gradient(circle at top right, rgba(193, 154, 107, 0.18), transparent 38%),
+    linear-gradient(145deg, #fffaf3, #f6ecdd);
 }
 
 .ai-flip-card-back {
   background:
-    radial-gradient(circle at bottom left, rgba(32, 178, 107, 0.16), transparent 38%),
-    linear-gradient(145deg, #ffffff, #f4fbf7);
+    radial-gradient(circle at bottom left, rgba(193, 154, 107, 0.18), transparent 38%),
+    linear-gradient(145deg, #fffaf3, #f6ecdd);
   transform: rotateY(180deg);
 }
 
@@ -79,6 +80,75 @@
   font-size: 24px;
 }
 
+/* Homie maskotu kendi ev siluetini tasidigi icin ayri bir kutu
+   arka planina ihtiyaci yok - marka mavisi her zaman sabit kalir. */
+.ai-card-icon--homie {
+  width: auto;
+  height: auto;
+  background: transparent;
+}
+
+.homie-mascot {
+  display: block;
+  flex-shrink: 0;
+}
+
+.homie-mascot--inline {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Kartin ic icerik alani - sade, hafif oturmus bir zemin. Kuyruk artik
+   burada degil, tum kartin altinda (asagida oturan Homie'ye dogru) -
+   bkz. .ai-speech-tail. */
+.ai-speech-bubble {
+  position: relative;
+  margin-top: 6px;
+  padding: 14px 16px 4px;
+  border-radius: 4px 18px 18px 18px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(23, 105, 170, 0.14);
+}
+
+/* Tum kart (ust bilgi kutusu), altta oturan Homie'nin agzindan
+   cikiyormus gibi bir konusma baloncugu haline gelsin diye - kartin
+   alt kenarina, Homie'nin oldugu tarafa (sola yakin) cizgi roman
+   tarzi, belirgin bir ucgen "kuyruk" eklenir. Iki ust uste bindirilmis
+   ucgen (biri biraz daha buyuk, kenarlik rengiyle; ustteki kartin ic
+   rengiyle) klasik "border'li konusma balonu" hissini verir. Flip
+   animasyonundan etkilenmemesi icin .ai-flip-card-inner'in DISINDA,
+   wrapper'a bagli sabit bir eleman. */
+.ai-speech-tail {
+  position: absolute;
+  left: 46px;
+  top: 376px;
+  width: 40px;
+  height: 36px;
+  z-index: 1;
+  pointer-events: none;
+  transform: skewX(-14deg);
+}
+
+.ai-speech-tail::before,
+.ai-speech-tail::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Sivri, duz kenarli bir ucgen yerine hafif kavisli/egimli, tek
+     yana yatik bir kuyruk - klasik cizgi roman balonlarindaki gibi */
+  clip-path: polygon(24% 0%, 88% 0%, 58% 52%, 44% 100%, 34% 58%);
+}
+
+.ai-speech-tail::before {
+  background: #e8dcc8;
+  transform: scale(1.16);
+  transform-origin: top center;
+}
+
+.ai-speech-tail::after {
+  background: #f6ecdd;
+}
+
 .ai-card-badge {
   display: inline-flex;
   align-items: center;
@@ -95,19 +165,23 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  justify-content: center;
-  padding: 18px 0;
+  justify-content: flex-start;
+  padding: 10px 0 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .ai-card-content h3 {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   color: #172033;
-  font-size: 23px;
+  font-size: 22px;
+  line-height: 1.2;
 }
 
 .ai-card-content p {
   margin: 0 0 14px;
   color: #667085;
+  font-size: 15px;
   line-height: 1.6;
 }
 
@@ -117,14 +191,15 @@
 }
 
 .ai-card-content ul {
-  margin: 0 0 16px;
+  margin: 0 0 10px;
   padding-left: 20px;
   color: #475467;
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .ai-card-content li + li {
-  margin-top: 7px;
+  margin-top: 6px;
 }
 
 .ai-card-footer {
@@ -146,13 +221,113 @@
   transform: rotate(45deg);
 }
 
+.ai-refresh-button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: none;
+  border-radius: 999px;
+  background: rgba(23, 105, 170, 0.1);
+  color: #1769aa;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.ai-refresh-button:hover {
+  background: rgba(23, 105, 170, 0.18);
+}
+
+.ai-refresh-button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.ai-refresh-button.is-loading span {
+  display: inline-block;
+  animation: ai-spin 0.9s linear infinite;
+}
+
+@keyframes ai-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ai-card-error {
+  margin: 0 0 14px;
+  color: #c92a2a;
+  line-height: 1.6;
+}
+
+/* Homie, "Homie'ye Sor" butonunun tam ustune bir bank gibi oturur.
+   .homie-button-group konumlandirma referansi (position: relative)
+   olarak kullanilir; Homie mutlak konumlandirilip "bottom: 100%" ile
+   grubun (yani butonun) tam ust kenarina hizalanir - boylece ayagin
+   alt cizgisi her zaman butonun ust cizgisiyle birebir cakisir, akis
+   tabanli margin hesaplarina bagli kalinmaz. */
+.homie-button-group {
+  position: relative;
+  margin-top: 96px;
+}
+
+.homie-sitting {
+  position: absolute;
+  left: 22px;
+  bottom: 100%;
+  z-index: 2;
+  pointer-events: none;
+  transform: translateY(20px);
+}
+
+.homie-foot--left {
+  transform-box: view-box;
+  transform-origin: 39px 84px;
+  animation: homie-swing-left 1.3s ease-in-out infinite;
+}
+
+.homie-foot--right {
+  transform-box: view-box;
+  transform-origin: 61px 84px;
+  animation: homie-swing-right 1.3s ease-in-out infinite;
+  animation-delay: 0.15s;
+}
+
+@keyframes homie-swing-left {
+  0%,
+  100% {
+    transform: rotate(-10deg);
+  }
+
+  50% {
+    transform: rotate(12deg);
+  }
+}
+
+@keyframes homie-swing-right {
+  0%,
+  100% {
+    transform: rotate(10deg);
+  }
+
+  50% {
+    transform: rotate(-12deg);
+  }
+}
+
 .gemini-button {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   width: 100%;
-  margin-top: 14px;
+  margin-top: 0;
   padding: 12px 18px;
   border: none;
   border-radius: 12px;
@@ -195,4 +370,85 @@
   font-size: 22px;
   line-height: 1;
   cursor: pointer;
+}
+
+.gemini-chat-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.gemini-chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 700;
+  color: #1769aa;
+}
+
+.gemini-chat-header-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gemini-chat-form {
+  display: flex;
+  gap: 8px;
+}
+
+.gemini-chat-form input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #c7d7fe;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #344054;
+  font-size: 14px;
+}
+
+.gemini-chat-form input:disabled {
+  opacity: 0.6;
+}
+
+.gemini-chat-form button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  background: #1769aa;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.gemini-chat-form button:hover:not(:disabled) {
+  background: #12598f;
+}
+
+.gemini-chat-form button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.gemini-chat-status {
+  margin: 0;
+  color: #667085;
+  font-size: 13px;
+}
+
+.gemini-chat-error {
+  color: #c92a2a;
+}
+
+.gemini-chat-answer {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #344054;
+  font-size: 14px;
+  line-height: 1.6;
 }

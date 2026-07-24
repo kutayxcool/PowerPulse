@@ -1,0 +1,21 @@
+# Caddy, {$DOMAIN} icin otomatik olarak Let's Encrypt sertifikasi alir
+# ve yeniler - manuel bir TLS/nginx kurulumu gerekmez. DOMAIN degiskeni
+# .env dosyasindan gelir (bkz. .env.example, docker-compose.prod.yml).
+#
+# Onemli: Bu domain'in DNS A kaydinin, docker compose'u calistirdigin
+# VPS'in genel (public) IP adresine isaret ediyor olmasi gerekir -
+# yoksa Let's Encrypt dogrulamasi basarisiz olur.
+{$DOMAIN} {
+    # Sadece /api/** disariya acilir - frontend zaten Vercel'de,
+    # Core'un kendisi disinda baska hicbir servise (Postgres/Kafka/
+    # Ignite/Sensors/AI Advisory) internetten dogrudan erisim yoktur.
+    reverse_proxy /api/* core:8080
+
+    # Swagger/OpenAPI dokumantasyonu da (istege bagli) erisilebilir kalsin.
+    reverse_proxy /v3/api-docs* core:8080
+    reverse_proxy /swagger-ui* core:8080
+
+    # Yukaridakilerin disinda bir istek gelirse (ör. yanlislikla kok
+    # adrese gidilirse), kisa bir bilgi mesaji don.
+    respond "PowerPulse API - bkz. /api" 200
+}

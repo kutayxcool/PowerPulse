@@ -1,7 +1,10 @@
 import SummaryCards from "../components/SummaryCards";
+import BudgetProgressBar from "../components/BudgetProgressBar";
+import MiniConsumptionTrend from "../components/MiniConsumptionTrend";
 import AIRecommendation from "../components/AIRecommendation";
 import SearchFilter from "../components/SearchFilter";
 import HomeCard from "../components/HomeCard";
+import InfoHint from "../components/InfoHint";
 
 function Dashboard({
   homes,
@@ -11,13 +14,34 @@ function Dashboard({
   selectedStatus,
   setSelectedStatus,
   setSelectedHomeId,
+  setEditingHomeId,
   getStatusText,
+  homieRef,
+  aiColumnRef,
+  activeHint,
+  onOpenHint,
 }) {
   return (
     <>
-      <SummaryCards homes={homes} />
+      <div className="dashboard-top-grid">
+        <aside className="dashboard-top-side" ref={aiColumnRef}>
+          <AIRecommendation
+            homes={homes}
+            homieRef={homieRef}
+            onOpenHint={onOpenHint}
+            isPointing={Boolean(activeHint)}
+          />
+        </aside>
 
-      <AIRecommendation homes={homes} />
+        <div className="dashboard-top-center">
+          <SummaryCards homes={homes} onOpenHint={onOpenHint} />
+          <MiniConsumptionTrend homes={homes} onOpenHint={onOpenHint} />
+        </div>
+
+        <aside className="dashboard-top-side">
+          <BudgetProgressBar homes={homes} onOpenHint={onOpenHint} />
+        </aside>
+      </div>
 
       <div className="section-header">
         <div>
@@ -27,6 +51,12 @@ function Dashboard({
             görüntüleyin.
           </p>
         </div>
+
+        <InfoHint
+          id="registered-homes"
+          text="Sisteme kayıtlı tüm evlerinizin listesi. Arama kutusuyla isme göre bulabilir, sağdaki menüyle duruma (normal/uyarı/kritik) göre filtreleyebilirsiniz."
+          onOpen={onOpenHint}
+        />
       </div>
 
       <SearchFilter
@@ -44,6 +74,9 @@ function Dashboard({
               home={home}
               onSelectHome={(selectedHome) =>
                 setSelectedHomeId(selectedHome.id)
+              }
+              onEditHome={(editedHome) =>
+                setEditingHomeId(editedHome.id)
               }
               getStatusText={getStatusText}
             />

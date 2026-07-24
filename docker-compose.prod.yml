@@ -1,0 +1,145 @@
+version: "3.8"
+
+# ============================================================
+# PRODUCTION compose dosyasi (VPS uzerinde kullanilir).
+#
+# Yereldeki docker-compose.yml'den farki:
+#   - Postgres/Kafka/Zookeeper/Ignite artik disariya (host'a) HICBIR
+#     port ACMAZ - sadece bu compose dosyasindaki servisler arasinda,
+#     Docker'in kendi ic agi uzerinden konusurlar. Disaridan (internet)
+#     sadece Caddy (80/443) erisilebilir durumdadir.
+#   - Core, Sensors ve AI Advisory artik kod olarak degil, kendi
+#     Dockerfile'larindan derlenip container olarak calisir.
+#   - Caddy, tek giris noktasi (reverse proxy) olarak eklendi - hem
+#     HTTPS/TLS sertifikasini (Let's Encrypt) otomatik yonetir hem de
+#     /api/** isteklerini Core container'ina yonlendirir.
+#
+# Kullanim: VPS'te bu repo klonlandiktan sonra, ayni klasorde bir
+# .env dosyasi olusturulur (bkz. .env.example) ve:
+#   docker compose -f docker-compose.prod.yml up -d --build
+# ============================================================
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    container_name: powerpulse-zookeeper
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: powerpulse-kafka
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Prod'da tek dinleyici yeterli - disaridan Kafka'ya dogrudan
+      # erisim yok, sadece container'lar arasi (ic ag).
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  postgres:
+    image: postgres:16
+    container_name: powerpulse-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - powerpulse_pg_data:/var/lib/postgresql/data
+
+  ignite:
+    image: apacheignite/ignite:2.16.0
+    container_name: powerpulse-ignite
+    restart: unless-stopped
+    environment:
+      JVM_OPTS: "-Xms512m -Xmx1g"
+
+  core:
+    build:
+      context: ./core
+    container_name: powerpulse-core
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - kafka
+      - ignite
+    environment:
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      IGNITE_ADDRESS: ignite:10800
+      AI_ADVISORY_BASE_URL: http://ai-advisory:8081
+      FRONTEND_URL: ${FRONTEND_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-604800000}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      BASE_RATE_PER_KWH: ${BASE_RATE_PER_KWH:-2.10}
+      TELEMETRY_TOPIC: telemetry
+      TELEMETRY_MAX_INTERVAL_SECONDS: ${TELEMETRY_MAX_INTERVAL_SECONDS:-10}
+      SNAPSHOT_INTERVAL_MS: ${SNAPSHOT_INTERVAL_MS:-900000}
+      SNAPSHOT_INITIAL_DELAY_MS: ${SNAPSHOT_INITIAL_DELAY_MS:-60000}
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3-flash-preview}
+
+  sensors:
+    build:
+      context: ./sensors
+    container_name: powerpulse-sensors
+    restart: unless-stopped
+    depends_on:
+      - kafka
+      - ignite
+      - core
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      IGNITE_ADDRESS: ignite:10800
+      CORE_BASE_URL: http://core:8080/api
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+
+  ai-advisory:
+    build:
+      context: ./ai-advisory
+    container_name: powerpulse-ai-advisory
+    restart: unless-stopped
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3-flash-preview}
+
+  # Tek genel-erisim noktasi: 80/443'u dinler, otomatik HTTPS
+  # (Let's Encrypt) yonetir ve /api/** isteklerini Core'a yonlendirir.
+  # DOMAIN degiskeni gercek alan adinla ayarlanmali (bkz. .env.example).
+  caddy:
+    image: caddy:2
+    container_name: powerpulse-caddy
+    restart: unless-stopped
+    depends_on:
+      - core
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - powerpulse_caddy_data:/data
+      - powerpulse_caddy_config:/config
+
+volumes:
+  powerpulse_pg_data:
+  powerpulse_caddy_data:
+  powerpulse_caddy_config:

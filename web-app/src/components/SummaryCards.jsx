@@ -1,4 +1,6 @@
-function SummaryCards({ homes }) {
+import InfoHint from "./InfoHint";
+
+function SummaryCards({ homes, onOpenHint }) {
   const totalHomes = homes.length;
 
   const totalConsumption = homes.reduce(
@@ -29,6 +31,11 @@ function SummaryCards({ homes }) {
     <section className="summary-grid">
 
       <div className="summary-card">
+        <InfoHint
+          id="summary-total-homes"
+          text="Sisteme kayıtlı toplam ev sayısı."
+          onOpen={onOpenHint}
+        />
         <div className="summary-icon">🏠</div>
 
         <div>
@@ -38,15 +45,25 @@ function SummaryCards({ homes }) {
       </div>
 
       <div className="summary-card">
+        <InfoHint
+          id="summary-total-consumption"
+          text="Tüm evlerinizin bu ayki toplam elektrik tüketimi (kWh)."
+          onOpen={onOpenHint}
+        />
         <div className="summary-icon">⚡</div>
 
         <div>
           <span>Toplam Tüketim</span>
-          <strong>{totalConsumption} kWh</strong>
+          <strong>{totalConsumption.toFixed(1)} kWh</strong>
         </div>
       </div>
 
       <div className="summary-card">
+        <InfoHint
+          id="summary-total-bill"
+          text="Tüm evlerinizin bu ayki toplam tahmini faturası (TL)."
+          onOpen={onOpenHint}
+        />
         <div className="summary-icon">💰</div>
 
         <div>
@@ -56,6 +73,11 @@ function SummaryCards({ homes }) {
       </div>
 
       <div className="summary-card">
+        <InfoHint
+          id="summary-risky-homes"
+          text="Aylık kotasının %90'ına yaklaşan (uyarı) veya %100'ünü geçen (kritik) ev sayısı."
+          onOpen={onOpenHint}
+        />
         <div className="summary-icon">⚠️</div>
 
         <div>

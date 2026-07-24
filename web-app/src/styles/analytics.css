@@ -4,6 +4,7 @@
 
 .comparison-chart,
 .analytics-card {
+  position: relative;
   padding: 22px;
   border: 1px solid #e3e7ee;
   border-radius: 18px;
@@ -53,4 +54,29 @@
 
 .daily-chart {
   margin-bottom: 22px;
+}
+
+/* Sol tarafta Homie'nin AI karti, sagda tum grafikler tek bir sutunda
+   toplu duruyor - Ana Sayfa'daki .dashboard-top-grid ile ayni fikir.
+   Dar ekranlarda tek sutuna doner. */
+.analytics-top-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+  align-items: start;
+  gap: 22px;
+  margin-bottom: 22px;
+}
+
+.analytics-top-side {
+  min-width: 0;
+}
+
+.analytics-top-content {
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .analytics-top-grid {
+    grid-template-columns: 1fr;
+  }
 }

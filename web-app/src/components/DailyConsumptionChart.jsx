@@ -7,8 +7,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import InfoHint from "./InfoHint";
 
-function DailyConsumptionChart({ homes }) {
+function DailyConsumptionChart({ homes, onOpenHint }) {
   const dailyTotals = homes.reduce((totals, home) => {
     home.dailyConsumption?.forEach((dailyData) => {
       const existingDay = totals.find(
@@ -35,6 +36,12 @@ function DailyConsumptionChart({ homes }) {
 
   return (
     <section className="analytics-card daily-chart">
+      <InfoHint
+        id="chart-daily"
+        text="Bu grafik, tüm evlerinizin son 7 güne ait toplam günlük enerji tüketimini gösterir. Çizginin yükselip alçalmasından tüketiminizin gün gün nasıl değiştiğini, hangi günlerde daha çok harcadığınızı takip edebilirsin."
+        onOpen={onOpenHint}
+      />
+
       <div className="analytics-card-header">
         <h3>Günlük Toplam Tüketim</h3>
         <p>Tüm evlerin son 7 günlük enerji tüketim trendi</p>

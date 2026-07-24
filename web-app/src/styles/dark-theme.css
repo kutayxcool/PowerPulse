@@ -1,0 +1,330 @@
+/* ===========================
+   TEMALAR
+   2 tema: "beige" (ana/varsayilan, acik) ve "copper" (koyu mod).
+   Mevcut temel CSS dosyalarina hicbir sekilde dokunulmaz - bu dosya,
+   <body data-theme="..."> attribute'una gore CSS degiskenlerini
+   tanimlayan ve mevcut sinif isimlerini bu degiskenlerle yeniden
+   boyayan bir ust katmandir (override layer). Boylece hicbir mevcut
+   stil riske girmeden tema secimi eklenmis olur.
+=========================== */
+
+[data-theme="beige"] {
+  --t-bg: #faf6f0;
+  --t-surface: #ffffff;
+  --t-surface-alt: #f2e9db;
+  --t-text: #332a1f;
+  --t-sub: #8a7f6f;
+  --t-border: #e7ddcc;
+  --t-accent: #8a6d4b;
+  --t-accent-soft: #efe6d8;
+  --t-on-accent: #ffffff;
+}
+
+[data-theme="copper"] {
+  --t-bg: #0f141d;
+  --t-surface: #1a2130;
+  --t-surface-alt: #212a3b;
+  --t-text: #ffffff;
+  --t-sub: #b9c2d6;
+  --t-border: #2a3244;
+  --t-accent: #c98a4b;
+  --t-accent-soft: #2c2416;
+  --t-on-accent: #1c1004;
+}
+
+[data-theme] {
+  background: var(--t-bg);
+  color: var(--t-text);
+}
+
+[data-theme] .loading-screen,
+[data-theme] .error-screen {
+  background: var(--t-bg);
+}
+
+[data-theme] .loading-screen {
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--t-accent) 18%, transparent), transparent 38%),
+    var(--t-bg);
+}
+
+[data-theme] .loading-spinner {
+  border-color: var(--t-accent-soft);
+  border-top-color: var(--t-accent);
+}
+
+[data-theme] .loading-screen h2,
+[data-theme] .error-screen h2,
+[data-theme] .card-header h2,
+[data-theme] .modal-header h2,
+[data-theme] .modal > h3,
+[data-theme] .add-home-header h2,
+[data-theme] .add-home-section h3,
+[data-theme] .chart-heading h3,
+[data-theme] .analytics-card-header h3,
+[data-theme] .comparison-chart-header h3,
+[data-theme] .budget-progress-header h3,
+[data-theme] .modal-summary strong,
+[data-theme] .metrics strong,
+[data-theme] .appliance-item > div > strong,
+[data-theme] .appliance-item > strong,
+[data-theme] .add-home-device-info strong,
+[data-theme] .add-home-device-power strong,
+[data-theme] .page-heading h2,
+[data-theme] .section-title,
+[data-theme] .ai-card-content h3,
+[data-theme] .summary-card strong,
+[data-theme] .add-home-empty strong,
+[data-theme] .add-home-unit-input strong,
+[data-theme] .budget-progress-stats strong {
+  color: var(--t-text);
+}
+
+[data-theme] .budget-progress-stats strong.budget-stat-danger {
+  color: #e5484d;
+}
+
+[data-theme] .budget-progress-stats {
+  border-color: var(--t-border);
+}
+
+[data-theme] .budget-progress-stats span {
+  color: var(--t-sub);
+}
+
+/* Yuzeyler: kartlar, modallar, navigasyon */
+[data-theme] .card,
+[data-theme] .summary-card,
+[data-theme] .budget-progress-card,
+[data-theme] .analytics-card,
+[data-theme] .comparison-chart,
+[data-theme] .modal,
+[data-theme] .add-home-modal,
+[data-theme] .navigation,
+[data-theme] .gemini-message {
+  background: var(--t-surface);
+  border-color: var(--t-border);
+  color: var(--t-text);
+}
+
+[data-theme] .metrics div,
+[data-theme] .modal-summary div,
+[data-theme] .add-home-power-card > div,
+[data-theme] .add-home-empty,
+[data-theme] .empty-state,
+[data-theme] .empty-message,
+[data-theme] .card-edit-button,
+[data-theme] .ai-refresh-button,
+[data-theme] .theme-toggle-button,
+[data-theme] .header-icon-button {
+  background: var(--t-surface-alt);
+  border-color: var(--t-border);
+}
+
+[data-theme] .card-header p,
+[data-theme] .modal-header p,
+[data-theme] .add-home-header p,
+[data-theme] .add-home-section-title p,
+[data-theme] .add-home-list-header p,
+[data-theme] .chart-heading p,
+[data-theme] .analytics-card-header p,
+[data-theme] .comparison-chart-header p,
+[data-theme] .budget-progress-note,
+[data-theme] .section-description,
+[data-theme] .page-heading p,
+[data-theme] .last-update,
+[data-theme] .header-tagline,
+[data-theme] .header p,
+[data-theme] .summary-card span,
+[data-theme] .metrics span,
+[data-theme] .metric-sublabel,
+[data-theme] .modal-summary span,
+[data-theme] .add-home-field span,
+[data-theme] .add-home-device-info span,
+[data-theme] .add-home-device-power span,
+[data-theme] .appliance-item span,
+[data-theme] .ai-card-content p,
+[data-theme] .ai-card-content ul,
+[data-theme] .add-home-power-card span,
+[data-theme] .add-home-empty span,
+[data-theme] .modal-close,
+[data-theme] .navigation button {
+  color: var(--t-sub);
+}
+
+[data-theme] .modal-close:hover {
+  color: var(--t-text);
+}
+
+[data-theme] .navigation button.active {
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+}
+
+[data-theme] .navigation button:hover {
+  background: var(--t-accent-soft);
+  color: var(--t-text);
+}
+
+[data-theme] .search-filter input,
+[data-theme] .search-filter select,
+[data-theme] .add-home-field input,
+[data-theme] .add-home-field select,
+[data-theme] .add-home-timer-select,
+[data-theme] .gemini-chat-form input {
+  background: var(--t-surface);
+  border-color: var(--t-border);
+  color: var(--t-text);
+}
+
+[data-theme] .header-account {
+  border-left-color: var(--t-border);
+}
+
+[data-theme] .header-account-name {
+  color: var(--t-text);
+}
+
+[data-theme] .add-home-open-form-button {
+  border-color: var(--t-border);
+  color: var(--t-accent);
+}
+
+[data-theme] .add-home-open-form-button:hover {
+  border-color: var(--t-accent);
+  background: var(--t-accent-soft);
+}
+
+[data-theme] .gemini-chat-answer {
+  background: var(--t-surface-alt);
+  color: var(--t-text);
+}
+
+[data-theme] .gemini-chat-status {
+  color: var(--t-sub);
+}
+
+[data-theme] .add-home-field input::placeholder,
+[data-theme] .search-filter input::placeholder {
+  color: var(--t-sub);
+}
+
+[data-theme] .add-home-close,
+[data-theme] .add-home-cancel-button {
+  background: var(--t-surface-alt);
+  border-color: var(--t-border);
+  color: var(--t-text);
+}
+
+[data-theme] .add-home-close:hover,
+[data-theme] .add-home-cancel-button:hover {
+  background: var(--t-accent-soft);
+}
+
+[data-theme] .retry-button,
+[data-theme] .add-home-device-button,
+[data-theme] .gemini-button {
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+}
+
+[data-theme] .retry-button:hover,
+[data-theme] .add-home-device-button:hover,
+[data-theme] .gemini-button:hover {
+  background: var(--t-accent);
+  opacity: 0.88;
+}
+
+[data-theme] .appliance-item,
+[data-theme] .chart-section,
+[data-theme] .modal-danger-zone {
+  border-color: var(--t-border);
+}
+
+[data-theme] .home-icon,
+[data-theme] .summary-icon,
+[data-theme] .ai-card-icon,
+[data-theme] .add-home-device-icon,
+[data-theme] .live-indicator {
+  background: var(--t-accent-soft);
+  color: var(--t-accent);
+}
+
+/* Homie maskotu da marka logosu gibi kutsal - kendi ev siluetini
+   tasidigi icin arka plan kutusuna ihtiyaci yok, hicbir temada
+   degismez. */
+[data-theme] .ai-card-icon--homie {
+  background: transparent;
+}
+
+/* Marka logosu (ev ikonu + P harfleri) kutsal - ikon rengi hicbir
+   temada degismez, her zaman sabit marka mavisinde kalir. Arka plan
+   ise sayfayla kaynasmasi icin o anki temanin arka plan rengini alir. */
+[data-theme] .brand-logo {
+  background: var(--t-bg);
+  color: #1769aa;
+}
+
+/* "PowerPulse" basligindaki P harflerinin kutusu her zaman marka
+   mavisi + beyaz harf olarak kalir - koyu temada da ayni, beyaz bir
+   yama gibi gorunmemesi icin acikca sabitleniyor. */
+[data-theme] .header h1 .brand-letter-box {
+  background: #1769aa;
+  color: #ffffff;
+}
+
+[data-theme] .theme-toggle-button,
+[data-theme] .header-icon-button {
+  color: var(--t-accent);
+}
+
+[data-theme] .progress,
+[data-theme] .budget-progress-track {
+  background: var(--t-surface-alt);
+}
+
+[data-theme] .ai-flip-card-front,
+[data-theme] .ai-flip-card-back {
+  background:
+    radial-gradient(circle at 100% 100%, rgba(255, 255, 255, 0.16), transparent 32%),
+    linear-gradient(145deg, var(--t-surface), var(--t-surface-alt));
+}
+
+[data-theme] .ai-flip-card-face {
+  border-color: var(--t-border);
+}
+
+[data-theme] .ai-speech-bubble {
+  background: var(--t-surface-alt);
+  border-color: var(--t-border);
+}
+
+[data-theme] .ai-speech-tail::before {
+  background: var(--t-border);
+}
+
+[data-theme] .ai-speech-tail::after {
+  background: var(--t-surface-alt);
+}
+
+/* Tema degistirme ve rapor indirme butonlari */
+.theme-toggle-button,
+.header-icon-button {
+  display: grid;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid #e3e7ee;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #1769aa;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.theme-toggle-button:hover,
+.header-icon-button:hover {
+  transform: translateY(-1px);
+}
